@@ -456,7 +456,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         binding.scrollTv.startScroll();
 
 
-        bindService(new Intent(this, SerialService.class), this, BIND_AUTO_CREATE);
+        //bindService(new Intent(this, SerialService.class), this, BIND_AUTO_CREATE);
 
         SerialPortReceivehandler = new Handler() {
             @Override
@@ -833,7 +833,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     protected void onResume() {
         super.onResume();
         //theLastOne();
-        pauseMusic();
         binding.adBg.startAutoPlay();
         registerHomeKeyReceiver(this);
         final View rootview = MainActivity.this.getWindow().getDecorView();
@@ -845,6 +844,8 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         new Thread() {
             @Override
             public void run() {
+
+                pauseMusic();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -1767,28 +1768,23 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
 
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
-        Log.e("key", "onKey>>>>keyCode=" + keyCode + "    KeyEvent=" + event);
+        Log.e("key", "onKey>>>>>event=" + keyCode);
         if (event.getAction() == KeyEvent.ACTION_UP) {
             return false;
         }
-
         switch (keyCode) {
             case KeyEvent.KEYCODE_MENU:
                 //Toast.makeText(mContext, "menu1", Toast.LENGTH_SHORT).show();
                 handleViewKey(v, keyCode, false);
                 break;
             case KeyEvent.KEYCODE_DPAD_DOWN:
-                //todo 底部弹窗
                 //handleViewKeyDown(v);
-
                 break;
             case KeyEvent.KEYCODE_HOME:
             case KeyEvent.KEYCODE_BACK:
                 binding.ivFill.setVisibility(View.GONE);
                 break;
-
         }
-
         return super.onKeyDown(keyCode, event);
     }
 
@@ -1821,6 +1817,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         if (keyCode == KeyEvent.KEYCODE_F3) {
             binding.bgIv5.setImageResource(R.drawable.gq1);
             binding.bgIv5.setVisibility(View.VISIBLE);
+            binding.bgIv5.bringToFront();
             //return true;
         }
         if (keyCode == KeyEvent.KEYCODE_F2) {
@@ -1871,19 +1868,19 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 inputNumber("9");
                 break;
             case KeyEvent.KEYCODE_F1: //F1
-                inputNumber("F1");
+                //inputNumber("F1");
                 break;
             case KeyEvent.KEYCODE_F2:    //F2
-                inputNumber("F2");
+                //inputNumber("F2");
                 break;
             case KeyEvent.KEYCODE_F3:     //F3
-                inputNumber("F3");
+                //inputNumber("F3");
                 break;
             case KeyEvent.KEYCODE_F11:    //天普遥控器的设置键
-                openSettings();
+                //openSettings();
                 break;
             case KeyEvent.KEYCODE_G:      //天普遥控器的USB键
-                launchApp("com.android.music");
+                //launchApp("com.android.music");
                 break;
             case KeyEvent.KEYCODE_DPAD_UP:
                 break;
@@ -1896,9 +1893,9 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     private static final String StartDragonAging = "2379";//老化
     private static final String versionInfo = "3379";//版本信息
 
-    private static final String zhibo = "F1";  //直播
-    private static final String dianbo = "F2";  //点播
-    private static final String app = "F3";    //我的应用
+    //private static final String zhibo = "F1";  //直播
+    //private static final String dianbo = "F2";  //点播
+    //private static final String app = "F3";    //我的应用
 
     long oldTime = 0;
     String num = "";
@@ -1917,7 +1914,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
             nba = 0;
         }
         oldTime = inputTime;
-//        Toast.makeText(mContext, num, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(mContext, num, Toast.LENGTH_SHORT).show();
 
         switch (nba) {
             case 8:
@@ -2000,11 +1997,11 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
 //                }
 //                break;
 
-            case app:
-                num = "";
-                oldTime = 0;
-                AppsActivity.lunchAppsActivity(this, MY_APP_TYPE);
-                break;
+            //case app:
+            //    num = "";
+            //    oldTime = 0;
+            //    AppsActivity.lunchAppsActivity(this, MY_APP_TYPE);
+             //   break;
 //            case "6666":
 //                num = "";
 //                oldTime = 0;
