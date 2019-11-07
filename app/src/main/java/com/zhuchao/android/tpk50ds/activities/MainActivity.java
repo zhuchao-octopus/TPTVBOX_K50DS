@@ -14,6 +14,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
@@ -31,6 +32,7 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
@@ -249,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     private int mIsStartFirst = 0;
 
     private boolean isFirstResume = true;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -493,8 +496,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         startService(iii);
 
         requestPermition();
-        setupFocuce();
-
 
         new Thread() {
             @Override
@@ -511,37 +512,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
             }
         }.start();
     }
-
-    private void setupFocuce() {
-        //默认焦点
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-
-                    sleep(4000);
-/*                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            binding.fl16.requestFocus();
-                            //onFocusChange(binding.fl1,true);
-                        }
-                    });*/
-                    //binding.fl1.requestFocus();
-                    sendKeyEvent(KeyEvent.KEYCODE_DPAD_DOWN);
-                    //binding.fl1.requestFocus();
-                    //sleep(500);
-                    //sendKeyEvent(KeyEvent.KEYCODE_DPAD_UP);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }.start();
-
-    }
-
-
     private void startVedioPlayerActivity() {
         Intent intent1 = new Intent();
         intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -682,8 +652,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                             cacheImg += i + ": " + data.get(i).getSyy_app_img() + "\n";
                             ivs[i].setImageURI(Uri.parse(data.get(i).getSyy_app_img()));
                         }
-
-
 
 
                     }
@@ -864,40 +832,42 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     @Override
     protected void onResume() {
         super.onResume();
-        Log.e(TAG, "launcher is resume");
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                theLastOne();
-                pauseMusic();
-            }
-        });
-
-
+        //theLastOne();
+        pauseMusic();
         binding.adBg.startAutoPlay();
-
         registerHomeKeyReceiver(this);
-
-
-//        if (!isFirstResume) {
-//            isFirstResume = false;
-        new Handler().postDelayed(new Runnable() {
+        final View rootview = MainActivity.this.getWindow().getDecorView();
+        View v = rootview.findFocus();
+        if (v == null) {
+            binding.fl1.setFocusable(true);
+            binding.fl1.requestFocus();
+        }
+        new Thread() {
             @Override
             public void run() {
-                if (binding.mainRl.hasFocus() ||
-                        binding.topInfo.getFocusedChild() != null ||
-                        binding.rlApp.getFocusedChild() != null) return;
-                binding.fl2.setFocusable(true);
-                binding.fl2.requestFocus();
-//                selEffectBridge.setUpRectResource(R.drawable.home_sel_btn);
-//                selEffectBridge.setVisibleWidget(false);
-//                binding.mainUpView.setFocusView(binding.fl1, null, 1.3f);
-//                binding.fl1.bringToFront();
-                Log.e("resume", "request focus");
-            }
-        }, 1000);
-//        }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (true) {
+                            View v = rootview.findFocus();
+                            if (v != null) {
+                                Rect rect = new Rect();
+                                ViewGroup root = (ViewGroup) rootview;
+                                root.offsetDescendantRectToMyCoords(v, rect);
+                                if (rect.left > 0 && rect.right > 0) {
+                                    selEffectBridge.setUpRectResource(R.drawable.home_sel_btn);
+                                    selEffectBridge.setVisibleWidget(false);
+                                    binding.mainUpView.setFocusView(v, null, 1.2f);
+                                    v.bringToFront();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                });
 
+            }
+        }.start();
     }
 
 
@@ -1790,14 +1760,14 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     }
 
     public void lunchHomeAppDialog(Object obj, int id) {
-        Log.d("MainActivity","lunchHomeAppDialog -- id:" + id);
+        Log.d("MainActivity", "lunchHomeAppDialog -- id:" + id);
         homeAppDialog = HomeAppDialog.showHomeAppDialog(this,
                 obj != null ? obj.toString() : null, id);
     }
 
     @Override
     public boolean onKey(View v, int keyCode, KeyEvent event) {
-        Log.e("key","onKey>>>>keyCode="+keyCode+"    KeyEvent="+event);
+        Log.e("key", "onKey>>>>keyCode=" + keyCode + "    KeyEvent=" + event);
         if (event.getAction() == KeyEvent.ACTION_UP) {
             return false;
         }
@@ -1842,63 +1812,84 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.e("key","onKeyDown>>>>>event="+event);
+        Log.e("key", "onKeyDown>>>>>event=" + event);
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             //binding.ivFill.setVisibility(View.GONE);
             inputNumber("BACK");
             return true;
-        } else {
-            switch (keyCode) {
-                case KeyEvent.KEYCODE_0:// 0
-                    inputNumber("0");
-                    break;
-                case KeyEvent.KEYCODE_1:// 1
-                    inputNumber("1");
-                    break;
-                case KeyEvent.KEYCODE_2:// 2
-                    inputNumber("2");
-                    break;
-                case KeyEvent.KEYCODE_3:// 3
-                    inputNumber("3");
-                    break;
-                case KeyEvent.KEYCODE_4:// 4
-                    inputNumber("4");
-                    break;
-                case KeyEvent.KEYCODE_5:// 5
-                    inputNumber("5");
-                    break;
-                case KeyEvent.KEYCODE_6:// 6
-                    inputNumber("6");
-                    break;
-                case KeyEvent.KEYCODE_7:// 7
-                    inputNumber("7");
-                    break;
-                case KeyEvent.KEYCODE_8:// 8
-                    inputNumber("8");
-                    break;
-                case KeyEvent.KEYCODE_9:// 9
-                    inputNumber("9");
-                    break;
-                case KeyEvent.KEYCODE_F1: //F1
-                    inputNumber("F1");
-                    break;
-                case KeyEvent.KEYCODE_F2:    //F2
-                    inputNumber("F2");
-                    break;
-                case KeyEvent.KEYCODE_F3:     //F3
-                    inputNumber("F3");
-                    break;
-                case KeyEvent.KEYCODE_F11:    //天普遥控器的设置键
-                    openSettings();
-                    break;
-                case KeyEvent.KEYCODE_G:      //天普遥控器的USB键
-                    launchApp("com.android.music");
-                    break;
-                case KeyEvent.KEYCODE_DPAD_UP:
-                    break;
-            }
-            return super.onKeyDown(keyCode, event);
         }
+        if (keyCode == KeyEvent.KEYCODE_F3) {
+            binding.bgIv5.setImageResource(R.drawable.gq1);
+            binding.bgIv5.setVisibility(View.VISIBLE);
+            return true;
+        }
+        if (keyCode == KeyEvent.KEYCODE_F2) {
+            binding.bgIv5.setImageResource(R.drawable.mn1);
+            binding.bgIv5.setVisibility(View.VISIBLE);
+            return true;
+        }
+        if (keyCode == KeyEvent.KEYCODE_F1) {
+            binding.bgIv5.setImageResource(R.drawable.ly1);
+            binding.bgIv5.setVisibility(View.VISIBLE);
+            return true;
+        }
+        if (keyCode == KeyEvent.KEYCODE_F4) {
+            binding.bgIv5.setImageResource(R.drawable.tz1);
+            binding.bgIv5.setVisibility(View.VISIBLE);
+            return true;
+        }
+
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_0:// 0
+                inputNumber("0");
+                break;
+            case KeyEvent.KEYCODE_1:// 1
+                inputNumber("1");
+                break;
+            case KeyEvent.KEYCODE_2:// 2
+                inputNumber("2");
+                break;
+            case KeyEvent.KEYCODE_3:// 3
+                inputNumber("3");
+                break;
+            case KeyEvent.KEYCODE_4:// 4
+                inputNumber("4");
+                break;
+            case KeyEvent.KEYCODE_5:// 5
+                inputNumber("5");
+                break;
+            case KeyEvent.KEYCODE_6:// 6
+                inputNumber("6");
+                break;
+            case KeyEvent.KEYCODE_7:// 7
+                inputNumber("7");
+                break;
+            case KeyEvent.KEYCODE_8:// 8
+                inputNumber("8");
+                break;
+            case KeyEvent.KEYCODE_9:// 9
+                inputNumber("9");
+                break;
+            case KeyEvent.KEYCODE_F1: //F1
+                inputNumber("F1");
+                break;
+            case KeyEvent.KEYCODE_F2:    //F2
+                inputNumber("F2");
+                break;
+            case KeyEvent.KEYCODE_F3:     //F3
+                inputNumber("F3");
+                break;
+            case KeyEvent.KEYCODE_F11:    //天普遥控器的设置键
+                openSettings();
+                break;
+            case KeyEvent.KEYCODE_G:      //天普遥控器的USB键
+                launchApp("com.android.music");
+                break;
+            case KeyEvent.KEYCODE_DPAD_UP:
+                break;
+        }
+        return super.onKeyDown(keyCode, event);
+
     }
 
     private static final String StartDragonTest = "1379";//测试
