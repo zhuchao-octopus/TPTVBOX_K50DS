@@ -1812,31 +1812,31 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.e("key", "onKeyDown>>>>>event=" + event);
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
+        Log.d("key", "onKeyDown>>>>>event=");
+        //if (keyCode == KeyEvent.KEYCODE_BACK) {
             //binding.ivFill.setVisibility(View.GONE);
-            inputNumber("BACK");
-            return true;
-        }
+        //    inputNumber("BACK");
+        //    return true;
+        //}
         if (keyCode == KeyEvent.KEYCODE_F3) {
             binding.bgIv5.setImageResource(R.drawable.gq1);
             binding.bgIv5.setVisibility(View.VISIBLE);
-            return true;
+            //return true;
         }
         if (keyCode == KeyEvent.KEYCODE_F2) {
             binding.bgIv5.setImageResource(R.drawable.mn1);
             binding.bgIv5.setVisibility(View.VISIBLE);
-            return true;
+            //return true;
         }
         if (keyCode == KeyEvent.KEYCODE_F1) {
             binding.bgIv5.setImageResource(R.drawable.ly1);
             binding.bgIv5.setVisibility(View.VISIBLE);
-            return true;
+            //return true;
         }
         if (keyCode == KeyEvent.KEYCODE_F4) {
             binding.bgIv5.setImageResource(R.drawable.tz1);
             binding.bgIv5.setVisibility(View.VISIBLE);
-            return true;
+            //return true;
         }
 
         switch (keyCode) {
