@@ -1,0 +1,23 @@
+﻿{
+	"_appname": "天普语音服务",
+	"_appid": "",
+	"_sdk_version": "2",
+	"_pkgname": "com.zhuchao.android.tianpuhw",
+	"_video": {
+		"mode": "text"
+	},
+	"_channel": [
+		"yx-windsd-test"
+	],
+	"_commands": {
+		"music": [
+			"$P(_MUSIC)"
+		],
+		"ktv": [
+			"$P(_KTV)"
+		]
+	}
+}
+BaA+iGy9UVcmeOAJZ2QcaoEJEyjlOg/AELEUJOArWIyzacu11KFPiEtTpvedx5MUSTN1icKCxcCX
+/Aq6HjTo/HFOclFqUMtaO/mocsC5/tE7PHyIl9O927NrdETUxPXSDOJUXEQkfX904wimJekHZYxe
+cDrCBufRENeljv5jAK4=

@@ -1,0 +1,3 @@
+F:/TP_TVBOX_K70Q/app/.cxx/cmake/release/x86_64/CMakeFiles/native-lib.dir
+F:/TP_TVBOX_K70Q/app/.cxx/cmake/release/x86_64/CMakeFiles/edit_cache.dir
+F:/TP_TVBOX_K70Q/app/.cxx/cmake/release/x86_64/CMakeFiles/rebuild_cache.dir

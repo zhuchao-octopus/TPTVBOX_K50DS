@@ -1,0 +1,19 @@
+{
+  "buildFiles": [
+    "F:\\android-studio\\Android\\sdk1\\ndk\\20.0.5594570\\build\\cmake\\android.toolchain.cmake",
+    "F:\\TPTVBOX_HW\\app\\CMakeLists.txt",
+    "F:\\android-studio\\Android\\sdk1\\ndk\\20.0.5594570\\build\\cmake\\platforms.cmake"
+  ],
+  "cleanCommands": [
+    "F:\\android-studio\\Android\\sdk1\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"F:\\TPTVBOX_HW\\app\\.cxx\\cmake\\debug\\x86\" clean"
+  ],
+  "buildTargetsCommand": "F:\\android-studio\\Android\\sdk1\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"F:\\TPTVBOX_HW\\app\\.cxx\\cmake\\debug\\x86\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "native-lib-Debug-x86": {
+      "artifactName": "native-lib",
+      "buildCommand": "F:\\android-studio\\Android\\sdk1\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"F:\\TPTVBOX_HW\\app\\.cxx\\cmake\\debug\\x86\" native-lib",
+      "abi": "x86",
+      "output": "F:\\TPTVBOX_HW\\app\\build\\intermediates\\cmake\\debug\\obj\\x86\\libnative-lib.so"
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "variant": {
+    "module": {
+      "rootBuildGradleFolder": "F:\\TP_TVBOX_K70Q",
+      "sdkFolder": "F:\\android-studio\\Android\\sdk1",
+      "isNativeCompilerSettingsCacheEnabled": false,
+      "isBuildOnlyTargetAbiEnabled": true,
+      "splitsAbiFilterSet": [],
+      "intermediatesFolder": "F:\\TP_TVBOX_K70Q\\app\\build\\intermediates",
+      "gradleModulePathName": ":app",
+      "moduleRootFolder": "F:\\TP_TVBOX_K70Q\\app",
+      "makeFile": "F:\\TP_TVBOX_K70Q\\app\\CMakeLists.txt",
+      "buildSystem": "CMAKE",
+      "compilerSettingsCacheFolder": "F:\\TP_TVBOX_K70Q\\.cxx",
+      "cxxFolder": "F:\\TP_TVBOX_K70Q\\app\\.cxx",
+      "ndkFolder": "F:\\android-studio\\Android\\sdk1\\ndk\\20.0.5594570",
+      "ndkVersion": "20.0.5594570",
+      "ndkSupportedAbiList": [
+        "ARMEABI_V7A",
+        "ARM64_V8A",
+        "X86",
+        "X86_64"
+      ],
+      "ndkDefaultAbiList": [
+        "ARMEABI_V7A",
+        "ARM64_V8A",
+        "X86",
+        "X86_64"
+      ],
+      "cmakeToolchainFile": "."
+    },
+    "buildSystemArgumentList": [],
+    "cFlagList": [],
+    "cppFlagsList": [
+      ""
+    ],
+    "variantName": "release",
+    "soFolder": "F:\\TP_TVBOX_K70Q\\app\\build\\intermediates\\cmake\\release\\lib",
+    "objFolder": "F:\\TP_TVBOX_K70Q\\app\\build\\intermediates\\cmake\\release\\obj",
+    "jsonFolder": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release",
+    "gradleBuildOutputFolder": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release",
+    "isDebuggableEnabled": false,
+    "validAbiList": [
+      "ARMEABI_V7A",
+      "ARM64_V8A",
+      "X86",
+      "X86_64"
+    ],
+    "buildTargetSet": []
+  },
+  "abi": "X86_64",
+  "abiPlatformVersion": 22,
+  "cxxBuildFolder": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release\\x86_64",
+  "jsonFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release\\x86_64\\android_gradle_build.json",
+  "gradleBuildOutputFolder": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64",
+  "objFolder": "F:\\TP_TVBOX_K70Q\\app\\build\\intermediates\\cmake\\release\\obj\\x86_64",
+  "buildCommandFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release\\x86_64\\build_command.txt",
+  "buildOutputFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release\\x86_64\\build_output.txt",
+  "modelOutputFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release\\x86_64\\build_model.json",
+  "cmake": {
+    "cmakeListsWrapperFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64\\CMakeLists.txt",
+    "toolchainWrapperFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64\\android_gradle_build.toolchain.cmake",
+    "buildGenerationStateFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64\\build_generation_state.json",
+    "cacheKeyFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64\\compiler_cache_key.json",
+    "compilerCacheUseFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64\\compiler_cache_use.json",
+    "compilerCacheWriteFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64\\compiler_cache_write.json",
+    "toolchainSettingsFromCacheFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cxx\\release\\x86_64\\compiler_settings_cache.cmake",
+    "cmakeWrappingBaseFolder": "."
+  },
+  "jsonGenerationLoggingRecordFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release\\x86_64\\json_generation_record.json",
+  "compileCommandsJsonFile": "F:\\TP_TVBOX_K70Q\\app\\.cxx\\cmake\\release\\x86_64\\compile_commands.json"
+}

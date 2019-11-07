@@ -1,0 +1,19 @@
+Executable : F:\android-studio\Android\sdk1\cmake\3.10.2.4988404\bin\cmake.exe
+arguments : 
+-HF:\TPTVBOX_HW\app
+-BF:\TPTVBOX_HW\app\.cxx\cmake\debug\x86
+-DANDROID_ABI=x86
+-DANDROID_PLATFORM=android-22
+-DCMAKE_LIBRARY_OUTPUT_DIRECTORY=F:\TPTVBOX_HW\app\build\intermediates\cmake\debug\obj\x86
+-DCMAKE_BUILD_TYPE=Debug
+-DANDROID_NDK=F:\android-studio\Android\sdk1\ndk\20.0.5594570
+-DCMAKE_SYSTEM_NAME=Android
+-DCMAKE_ANDROID_ARCH_ABI=x86
+-DCMAKE_SYSTEM_VERSION=22
+-DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+-DCMAKE_ANDROID_NDK=F:\android-studio\Android\sdk1\ndk\20.0.5594570
+-DCMAKE_TOOLCHAIN_FILE=F:\android-studio\Android\sdk1\ndk\20.0.5594570\build\cmake\android.toolchain.cmake
+-G Ninja
+-DCMAKE_MAKE_PROGRAM=F:\android-studio\Android\sdk1\cmake\3.10.2.4988404\bin\ninja.exe
+jvmArgs : 
+

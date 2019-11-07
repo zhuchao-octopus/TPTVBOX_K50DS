@@ -1,0 +1,42 @@
+{
+  "stringTable": {
+    "0": "F:/TPTVBOX_HW/app/.cxx/cmake/debug/armeabi-v7a",
+    "1": "--target=armv7-none-linux-androideabi22 --gcc-toolchain=F:/android-studio/Android/sdk1/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64 --sysroot=F:/android-studio/Android/sdk1/ndk/20.0.5594570/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dnative_lib_EXPORTS -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -fno-addrsig -march=armv7-a -mthumb -Wa,--noexecstack -Wformat -Werror=format-security -O0 -fno-limit-debug-info -fPIC"
+  },
+  "buildFiles": [
+    "F:\\android-studio\\Android\\sdk1\\ndk\\20.0.5594570\\build\\cmake\\android.toolchain.cmake",
+    "F:\\TPTVBOX_HW\\app\\CMakeLists.txt",
+    "F:\\android-studio\\Android\\sdk1\\ndk\\20.0.5594570\\build\\cmake\\platforms.cmake"
+  ],
+  "cleanCommands": [
+    "F:\\android-studio\\Android\\sdk1\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"F:\\TPTVBOX_HW\\app\\.cxx\\cmake\\debug\\armeabi-v7a\" clean"
+  ],
+  "buildTargetsCommand": "F:\\android-studio\\Android\\sdk1\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"F:\\TPTVBOX_HW\\app\\.cxx\\cmake\\debug\\armeabi-v7a\" {LIST_OF_TARGETS_TO_BUILD}",
+  "libraries": {
+    "native-lib-Debug-armeabi-v7a": {
+      "buildCommand": "F:\\android-studio\\Android\\sdk1\\cmake\\3.10.2.4988404\\bin\\ninja.exe -C \"F:\\TPTVBOX_HW\\app\\.cxx\\cmake\\debug\\armeabi-v7a\" native-lib",
+      "buildType": "debug",
+      "toolchain": "3910487861",
+      "abi": "armeabi-v7a",
+      "artifactName": "native-lib",
+      "files": [
+        {
+          "src": "F:\\TPTVBOX_HW\\app\\src\\main\\cpp\\native-lib.cpp",
+          "flagsOrdinal": 1,
+          "workingDirectoryOrdinal": 0
+        }
+      ],
+      "headers": [],
+      "output": "F:\\TPTVBOX_HW\\app\\build\\intermediates\\cmake\\debug\\obj\\armeabi-v7a\\libnative-lib.so"
+    }
+  },
+  "toolchains": {
+    "3910487861": {
+      "cppCompilerExecutable": "F:\\android-studio\\Android\\sdk1\\ndk\\20.0.5594570\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}
