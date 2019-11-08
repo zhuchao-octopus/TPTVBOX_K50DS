@@ -2,6 +2,7 @@ package com.zhuchao.android.tpk50ds.services;
 
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -24,7 +25,7 @@ import utils.SerialPortUtils;
 
 public class SerialService extends Service {
 
-    private SerialPortUtils serialPortUtils = new SerialPortUtils();
+    private SerialPortUtils serialPortUtils = null;//new SerialPortUtils();
     private byte[] SerialPortReceiveBuffer;
     private String lo;
     private Handler SerialPortReceivehandler;
@@ -54,7 +55,7 @@ public class SerialService extends Service {
                 super.handleMessage(msg);
             }
         };
-
+        serialPortUtils = new SerialPortUtils();
         serialPort = serialPortUtils.openSerialPort();
 
         if (serialPort == null) {
@@ -93,6 +94,7 @@ public class SerialService extends Service {
             receiver = new MyReceiver();
             IntentFilter filter = new IntentFilter();
             filter.addAction("com.iflytek.xiri2.hal.volume");
+            filter.addAction("com.zhuchao.android.tpk50ds.source");
             registerReceiver(receiver, filter);
 
             return SerialService.this;
@@ -218,7 +220,26 @@ public class SerialService extends Service {
         }
         sdialog.adjustVolume(direction, true, type);
     }
+    private void delayAction(final Bundle bundle) {
+        new Handler().postDelayed(new Runnable() {
+            public void run() {
+                //要执行的任务
+                Intent d = new Intent();
+                d.putExtras(bundle);
+                //d.putExtra("_Action", cmd);
+                d.setAction("com.zhuchao.android.tianpuhw.services");
+                sendBroadcast(d);
+            }
+        }, 1200);
+    }
 
+    private void startMainActivity() {
+        Intent i = new Intent();
+        ComponentName cn = new ComponentName("com.zhuchao.android.tianpuhw", "com.zhuchao.android.tianpuhw.activities.MainActivity");
+        i.setComponent(cn);
+        //i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(i);
+    }
     public class MyReceiver extends BroadcastReceiver {
         //adb shell am broadcast -a com.iflytek.xiri2.hal.volume
         //adb shell am broadcast -a com.iflytek.xiri2.hal.volume --es volume 30
@@ -234,9 +255,7 @@ public class SerialService extends Service {
                 mType = bundle.getString("type", "0200");
             }
 
-            //vol = vol * 100 / 60;
             if (vol > 60) vol = 60;
-
             Log.d("MyReceiver--->", intent.getAction() + ":volume=" + vol);
 
             if (intent.getAction() == "com.iflytek.xiri2.hal.volume") {
@@ -257,6 +276,14 @@ public class SerialService extends Service {
                 } else {
                     showVolumeDialog(MusicVolume, "0200");
                 }
+            }
+            if(intent.getAction().equals("com.zhuchao.android.tpk50ds.source"))
+            {
+               int i= intent.getIntExtra("keyCode",0);
+                Bundle b = new Bundle();
+                b.putInt("keyCode",i);
+                startMainActivity();
+                delayAction(b);
             }
         }
     }

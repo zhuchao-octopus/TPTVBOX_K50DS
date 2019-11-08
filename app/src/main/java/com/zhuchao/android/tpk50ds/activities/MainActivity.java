@@ -456,7 +456,11 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         binding.scrollTv.startScroll();
 
 
-        //bindService(new Intent(this, SerialService.class), this, BIND_AUTO_CREATE);
+        bindService(new Intent(this, SerialService.class), this, BIND_AUTO_CREATE);
+        Intent iii;
+        iii = new Intent(MainActivity.this, MyService.class);
+        Log.d(TAG, "start MyService");
+        startService(iii);
 
         SerialPortReceivehandler = new Handler() {
             @Override
@@ -482,6 +486,8 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         receiver = new MyReceiver();
         IntentFilter filter = new IntentFilter();
         filter.addAction("com.zhuchao.android.tianpuhw.services");
+        filter.addAction("com.zhuchao.android.tpk50ds");
+        filter.addAction("com.zhuchao.android.tpk50ds.source");
         MainActivity.this.registerReceiver(receiver, filter);
 
         mBootCompletedReceiver = new BootCompletedReceiver();
@@ -490,10 +496,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         filter.addAction("android.intent.action.BOOT_COMPLETED");
         MainActivity.this.registerReceiver(mBootCompletedReceiver, filter);
 
-        Intent iii;
-        iii = new Intent(MainActivity.this, MyService.class);
-        Log.d(TAG, "start MyService");
-        startService(iii);
 
         requestPermition();
 
@@ -740,7 +742,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         Log.i(TAG, "registerHomeKeyReceiver");
         mHomeKeyReceiver = new HomeWatcherReceiver();
         final IntentFilter homeFilter = new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-
         context.registerReceiver(mHomeKeyReceiver, homeFilter);
     }
 
@@ -1808,7 +1809,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d("key", "onKeyDown>>>>>event=");
+        Log.d("key", "onKeyDown>>>>>event="+keyCode);
         //if (keyCode == KeyEvent.KEYCODE_BACK) {
             //binding.ivFill.setVisibility(View.GONE);
         //    inputNumber("BACK");
@@ -3001,13 +3002,32 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         public void onReceive(Context context, Intent intent) {
             final String pull_from = "52129";
             Bundle bundle = intent.getExtras();
-
             if (bundle == null) return;
-
             String _action = bundle.getString("_Action");
-
-
             if (_action == null) return;
+            Log.d("key", "123>>>>>="+bundle.getInt("keyCode"));
+
+            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F3) {
+                binding.bgIv5.setImageResource(R.drawable.gq1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                binding.bgIv5.bringToFront();
+                //return true;
+            }
+            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F2) {
+                binding.bgIv5.setImageResource(R.drawable.mn1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                //return true;
+            }
+            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F4) {
+                binding.bgIv5.setImageResource(R.drawable.tz1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                //return true;
+            }
+            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F1) {
+                binding.bgIv5.setImageResource(R.drawable.ly1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                //return true;
+            }
 
             if ((_action.contains("首页")) || (_action.contains("桌面")) || (_action.contains("主页"))) {
 
@@ -3050,6 +3070,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                         }
                     } else {
                         binding.fl1.requestFocus();
+
                         Log.d(TAG, "返回桌面 requestFocus1");
                     }
                 } else {
@@ -3142,6 +3163,9 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                     // 短按Home键
                     Log.i(LOG_TAG, "homekey");
                     //binding.ivFill.setVisibility(View.GONE);
+                    binding.bgIv5.setImageResource(R.drawable.m);
+                    binding.bgIv5.setVisibility(View.VISIBLE);
+
                 } else if (SYSTEM_DIALOG_REASON_RECENT_APPS.equals(reason)) {
                     // 长按Home键 或者 activity切换键
                     Log.i(LOG_TAG, "long press home key or activity switch");

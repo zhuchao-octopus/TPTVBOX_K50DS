@@ -365,8 +365,8 @@
 
 				<com.facebook.drawee.view.SimpleDraweeView
 					android:id="@+id/bg_iv111"
-					android:layout_width="0dp"
-					android:layout_height="0dp"
+					android:layout_width="86dp"
+					android:layout_height="54dp"
 					android:scaleType="fitXY"
 					fresco:failureImage="@drawable/failedbg1"
 					fresco:failureImageScaleType="fitXY"
@@ -385,12 +385,13 @@
 				android:clickable="true"
 				android:clipChildren="false"
 				android:clipToPadding="false"
-				android:focusable="true">
+				android:focusable="true"
+				android:visibility="gone">
 
 				<com.facebook.drawee.view.SimpleDraweeView
 					android:id="@+id/bg_iv112"
-					android:layout_width="0dp"
-					android:layout_height="0dp"
+					android:layout_width="86dp"
+					android:layout_height="54dp"
 					android:scaleType="fitXY"
 					fresco:failureImage="@drawable/failedbg1"
 					fresco:failureImageScaleType="fitXY"
@@ -409,7 +410,8 @@
 				android:clickable="true"
 				android:clipChildren="false"
 				android:clipToPadding="false"
-				android:focusable="true">
+				android:focusable="true"
+				android:visibility="gone">
 
 				<com.facebook.drawee.view.SimpleDraweeView
 					android:id="@+id/bg_iv113"
@@ -433,7 +435,8 @@
 				android:clickable="true"
 				android:clipChildren="false"
 				android:clipToPadding="false"
-				android:focusable="true">
+				android:focusable="true"
+				android:visibility="gone">
 
 				<com.facebook.drawee.view.SimpleDraweeView
 					android:id="@+id/bg_iv114"
@@ -457,7 +460,8 @@
 				android:clickable="true"
 				android:clipChildren="false"
 				android:clipToPadding="false"
-				android:focusable="true">
+				android:focusable="true"
+				android:visibility="gone">
 
 				<com.facebook.drawee.view.SimpleDraweeView
 					android:id="@+id/bg_iv115"
@@ -469,7 +473,8 @@
 					fresco:placeholderImage="@drawable/xae"
 					fresco:placeholderImageScaleType="fitXY"
 					fresco:retryImage="@drawable/failedbg1"
-					fresco:retryImageScaleType="fitXY" />
+					fresco:retryImageScaleType="fitXY"
+					android:visibility="gone"/>
 			</FrameLayout>
 
 			<FrameLayout
@@ -477,12 +482,15 @@
 				android:layout_width="wrap_content"
 				android:layout_height="wrap_content"
 				android:layout_below="@id/fl5"
+				android:layout_alignStart="@+id/fl15"
+				android:layout_marginStart="0dp"
 				android:layout_toRightOf="@id/fl15"
 				android:clickable="true"
 				android:clipChildren="false"
 				android:clipToPadding="false"
 				android:focusable="true"
-				android:nextFocusRight="@id/ad">
+				android:nextFocusRight="@id/ad"
+				android:visibility="gone">
 
 				<com.facebook.drawee.view.SimpleDraweeView
 					android:id="@+id/bg_iv116"
