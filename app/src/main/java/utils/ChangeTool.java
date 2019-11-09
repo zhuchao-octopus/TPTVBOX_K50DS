@@ -15,8 +15,8 @@ public class ChangeTool {
 
     //-------------------------------------------------------
     //Hex字符串转int
-    public static int HexToInt(String inHex) {
-        return Integer.parseInt(inHex, 16);
+    public static int HexToInt(String hex) {
+        return Integer.parseInt(hex, 16);
     }
 
     public static int DoubleByteToInt(byte b1,byte b2)
@@ -38,6 +38,10 @@ public class ChangeTool {
         return (byte) Integer.parseInt(inHex, 16);
     }
 
+    //16转十进制
+    public static long Hex2Long(String hex) {
+        return Long.parseLong(hex, 16);
+    }
     //-------------------------------------------------------
     //1字节转2个Hex字符
     public static String Byte2Hex(Byte inByte) {

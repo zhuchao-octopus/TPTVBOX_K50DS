@@ -1,62 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <ImageView
-            android:id="@+id/iv_tops"
-            android:layout_width="470dp"
-            android:layout_height="85dp"
-            android:src="@drawable/tops"
-            android:layout_above="@id/iv_middles"
-            android:layout_alignStart="@id/iv_middles"
-            android:scaleType="fitXY"/>
-        <ImageView
-            android:id="@+id/iv_middles"
-            android:layout_width="470dp"
-            android:layout_height="85dp"
-            android:src="@drawable/middles"
-            android:layout_centerInParent="true"
-            android:scaleType="fitXY"/>
-        <ImageView
-            android:id="@+id/iv_bottoms"
-            android:layout_width="470dp"
-            android:layout_height="85dp"
-            android:src="@drawable/bottoms"
-            android:layout_below="@id/iv_middles"
-            android:layout_alignStart="@id/iv_middles"
-            android:scaleType="fitXY"/>
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
         <TextView
             android:id="@+id/tv_top"
             android:layout_width="470dp"
-            android:layout_height="85dp"
-            android:text="@string/device_not_activated"
-            android:textSize="35sp"
-            android:textColor="#000000"
+            android:layout_height="wrap_content"
+            android:background="@drawable/tops"
             android:gravity="center"
-            android:layout_above="@id/tv_middles"
-            android:layout_centerHorizontal="true"/>
+            android:padding="25dp"
+            android:text="@string/device_not_activated"
+            android:textColor="#000000"
+            android:textSize="32sp" />
+
         <TextView
             android:id="@+id/tv_middles"
             android:layout_width="470dp"
-            android:layout_height="85dp"
-            android:text="mac"
-            android:textSize="35sp"
-            android:textColor="#ffffff"
+            android:layout_height="wrap_content"
+            android:background="@drawable/middles"
             android:gravity="center"
-            android:layout_centerInParent="true"
-            android:layout_marginStart="20dp"/>
+            android:padding="30dp"
+            android:text="mac"
+            android:textColor="#ffffff"
+            android:textSize="32sp" />
+
         <TextView
             android:id="@+id/tv_bottoms"
             android:layout_width="470dp"
-            android:layout_height="85dp"
-            android:text="@string/please_contact_the_manufacturer"
-            android:textSize="35sp"
-            android:textColor="#ffffff"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bottoms"
             android:gravity="center"
-            android:layout_below="@id/tv_middles"
-            android:layout_centerHorizontal="true"/>
-    </RelativeLayout>
+            android:padding="25dp"
+            android:text="@string/please_contact_the_manufacturer"
+            android:textColor="#ffffff"
+            android:textSize="32sp" />
+    </LinearLayout>
 
 </layout>

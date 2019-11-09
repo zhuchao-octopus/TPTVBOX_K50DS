@@ -1,32 +1,33 @@
 package com.zhuchao.android.tpk50ds.activities;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 
 import com.zhuchao.android.tpk50ds.R;
+import com.zhuchao.android.tpk50ds.databinding.ActivityMyApplicationBinding;
+import com.zhuchao.android.tpk50ds.utils.ShareAdapter;
+
 import com.zhuchao.android.tpk50ds.adapter.AppAdapter;
 import com.zhuchao.android.tpk50ds.data.App;
-import com.zhuchao.android.tpk50ds.databinding.ActivityMyApplicationBinding;
+
 import com.zhuchao.android.tpk50ds.utils.AppHandler;
 import com.zhuchao.android.tpk50ds.utils.PageType;
-import com.zhuchao.android.tpk50ds.utils.ShareAdapter;
 import com.zhuchao.android.tpk50ds.utils.Utils;
 
 /**
  * Created by Oracle on 2017/12/1.
  */
 
-public class AppsActivity extends AppCompatActivity {
+public class AppsActivity extends Activity {
 
     private static final String TAG = AppsActivity.class.getSimpleName();
     private ActivityMyApplicationBinding binding;
@@ -37,8 +38,7 @@ public class AppsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_my_application);
         String pageTypeStr = getIntent().getStringExtra("type");

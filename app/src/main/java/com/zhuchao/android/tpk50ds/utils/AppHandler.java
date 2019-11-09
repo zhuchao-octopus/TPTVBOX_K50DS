@@ -35,14 +35,14 @@ public class AppHandler {
 
     public SparseArray<App> saAPP = new SparseArray<>();
 
-    public static final String CLEAR_ACTION = "com.zhuchao.android.tianpuhw.action.clear";
-    public static final String ADD_ACTION = "com.zhuchao.android.tianpuhw.action.add";
+    public static final String CLEAR_ACTION = "com.zhuchao.android.tianpu.action.clear";
+    public static final String ADD_ACTION = "com.zhuchao.android.tianpu.action.add";
     public static final String SEND_APP = "send_app";
     private PageType type;
     private PageType oldType;
     private ExecutorService scanExecutorService;
     private PackageManager packageManager;
-    public String settings ;
+    public String settings;
 
     public AppHandler(Context context, PageType type) {
         this.context = context;
@@ -91,6 +91,7 @@ public class AppHandler {
         this.onBottomListener = onBottomListener;
     }
 
+    //通过回调返回有效的安装应用列表,用于添加应用的列表页
     class ScanTask implements Runnable {
 
         @Override
@@ -101,7 +102,7 @@ public class AppHandler {
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
             List<ResolveInfo> scanVals = packageManager.queryIntentActivities(intent, 0);
 
-            List<ResolveInfo> scanValsTmp = new LinkedList<ResolveInfo>();
+            List<ResolveInfo> scanValsTmp = new LinkedList<ResolveInfo>();//能打开的应用列表
             for (int i = 0; i < scanVals.size(); i++) {
                 ResolveInfo resolveInfo = scanVals.get(i);
                 if (!isPreInstallApp(resolveInfo.activityInfo.packageName)) {
@@ -110,28 +111,30 @@ public class AppHandler {
             }
 
             int size = scanValsTmp.size();
-            final SparseArray<App> list = new SparseArray<>();
+            final SparseArray<App> list = new SparseArray<>();//能打开的封装后的应用列表
             for (int i = 0; i < size; i++) {
                 ResolveInfo resolveInfo = scanValsTmp.get(i);
-                    App app = new App();
-                    app.setName(resolveInfo.loadLabel(packageManager).toString());
-                    app.setPackageName(resolveInfo.activityInfo.packageName);
-                    app.setIcon(resolveInfo.loadIcon(packageManager));
+                App app = new App();
+                app.setName(resolveInfo.loadLabel(packageManager).toString());
+                app.setPackageName(resolveInfo.activityInfo.packageName);
+                app.setIcon(resolveInfo.loadIcon(packageManager));
 //                    Log.e("Tag","app="+app);
-                    //获取设置的包名
-                if (app.getName().equals("设置") || app.getName().equals("Settings") || app.getName().equals("settings") || app.getName().equals("Thiết lập")){
+                //获取设置的包名
+                if (app.getName().equals("设置") || app.getName().equals("Settings") || app.getName().equals("settings") || app.getName().equals("Thiết lập")) {
                     settings = app.getPackageName();
-                    Log.d("Tag","settings="+settings);
+                    Log.d("Tag", "settings=" + settings);
                 }
-                    list.put(i, app);
-                    saAPP = list;
-                    Log.d(TAG, app.toString());
+                list.put(i, app);
+                saAPP = list;
+                //Log.d(TAG, app.toString());
             }
-            if (listener != null) {
+            if (listener != null&&context!=null) {
                 ((Activity) context).runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onResponse(list);
+                        if (listener != null) {
+                            listener.onResponse(list);
+                        }
                     }
                 });
             }
@@ -146,23 +149,23 @@ public class AppHandler {
 //            Log.d(TAG,"过滤谷歌商店="+packageName);
 //            return true;
 //        }
-        if (packageName.equals("com.zhuchao.android.tianpuhw")){
+        if (packageName.equals("com.zhuchao.android.tianpu")) {
             //隐藏自己
             return true;
         }
-        if (packageName.equals("com.wxs.scanner")){
+        if (packageName.equals("com.wxs.scanner")) {
             //隐藏测试工具
             return true;
         }
-        if(packageName.equals("com.iflytek.xiri")){
+        if (packageName.equals("com.iflytek.xiri")) {
             //隐藏讯飞语点
             return true;
         }
-        if (packageName.equals("com.softwinner.dragonbox")){
+        if (packageName.equals("com.softwinner.dragonbox")) {
             //隐藏DragonBox
             return true;
         }
-        if (packageName.equals("com.android.camera2")){
+        if (packageName.equals("com.android.camera2")) {
             //隐藏相机
             return true;
         }
@@ -185,7 +188,7 @@ public class AppHandler {
 
             if (!isOnlyRecent) {
                 int[] ids = new int[]{
-                   R.id.fl_add1
+                        R.id.fl2
                 };
                 App clearApp = new App();
                 App app = null;
@@ -197,8 +200,8 @@ public class AppHandler {
                     Log.d(TAG, "idI = " + idI);
                     String idStr = String.valueOf(idI);
                     String packageName = shareAdapter.getStr(idStr);
-                    Log.d(TAG, "idStr = " + idStr);
-                    Log.d(TAG, "packageName " + packageName);
+                    Log.d(TAG, "ScanHomeTask.idStr = " + idStr);
+                    Log.d(TAG, "ScanHomeTask.packageName " + packageName);
                     if (listenerOk) {
                         if (TextUtils.isEmpty(packageName)) {
                             app = clearApp;
@@ -225,8 +228,8 @@ public class AppHandler {
                             ((Activity) context).runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    Log.d(TAG,"idI="+idI+"  sendApp="+sendApp);
-                                        addRemoeveListener.addRemove(idI, sendApp);
+                                    Log.d(TAG, "idI=" + idI + "  sendApp=" + sendApp);
+                                    addRemoeveListener.addRemove(idI, sendApp);
                                 }
                             });
                         }
@@ -365,7 +368,9 @@ public class AppHandler {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
             scanExecutorService.submit(new SaveRecentTask(packageName));
-            Log.d(TAG,"launchApp---->"+packageName);
+            Log.d(TAG, "launchApp---->" + packageName);
+        } else {
+            Log.d(TAG, "launchApp---->" + packageName + "应用不存在");
         }
     }
 
@@ -419,8 +424,7 @@ public class AppHandler {
                 try {
                     String packageName = recentAppArr[recentIndex];
                     Log.d(TAG, "ScanRecentTask " + packageName);
-                    PackageInfo packageInfo
-                            = packageManager.getPackageInfo(packageName, 0);
+                    PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
                     ApplicationInfo applicationInfo = packageInfo.applicationInfo;
                     recentAppObj.setName(applicationInfo.loadLabel(packageManager).toString());
                     recentAppObj.setIcon(applicationInfo.loadIcon(packageManager));
@@ -433,17 +437,19 @@ public class AppHandler {
                 }
             }
 
-            if (listener != null) {
+            if (listener != null && context != null) {
                 ((Activity) context).runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        listener.onResponse(list);
+                        if (listener != null) {
+                            listener.onResponse(list);
+                        }
                     }
                 });
             }
             //最后使用的一个app
             String str = stringBuilder.toString().split(";")[0];
-            if (!"com.android.music".equals(str)){
+            if (!"com.android.music".equals(str)) {
                 ShareAdapter.getInstance().saveStr(lastAppKey, str);
             }
 
@@ -483,7 +489,8 @@ public class AppHandler {
                         ApplicationInfo applicationInfo = packageInfo.applicationInfo;
                         bottomAppObj.setIcon(applicationInfo.loadIcon(packageManager));
                         bottomAppObj.setPackageName(applicationInfo.packageName);
-                    } catch (PackageManager.NameNotFoundException e) {}
+                    } catch (PackageManager.NameNotFoundException e) {
+                    }
 
                     Log.d(TAG, "ScanBottomTask " + bottomAppObj);
                     ((Activity) context).runOnUiThread(new Runnable() {

@@ -7,11 +7,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.TextView;
 
-
-import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.activities.MainActivity;
+import com.zhuchao.android.tpk50ds.R;
 
 /**
  * 菜单键的弹窗
@@ -25,13 +25,15 @@ public class Sound_Effect_Dialog extends Dialog  {
     private int mNowVolume;
     private TextView tv;
     private View view;
+    private ImageView iv;
 
     public Sound_Effect_Dialog(Context context) {
         super(context);
         view = LayoutInflater.from(context).inflate(R.layout.sound_effect_dialog, null);
-        dialog = new Dialog(context, R.style.sound_effect_dialog);
+        dialog = new Dialog(context,R.style.sound_effect_dialog);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         tv = view.findViewById(R.id.tv_no);
+        iv = view.findViewById(R.id.iv_persion);
     }
 
 
@@ -40,9 +42,6 @@ public class Sound_Effect_Dialog extends Dialog  {
         dialog.getWindow().setContentView(view);
         dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
         dialog.getWindow().setLayout(200, 120);
-        if (!"".equals(types) && types.equals("0400")) {
-            tv.setText(String.valueOf(mNowVolume));
-        }
         dialog.show();
     }
 
@@ -69,6 +68,16 @@ public class Sound_Effect_Dialog extends Dialog  {
         show();
 
         close();
+    }
+
+    public void setContentValue(int rID,String strValue)
+    {
+        //if(tv != null)
+        tv.setText(strValue);
+        //tv.invalidate();
+        //if(iv != null)
+        iv.setImageResource(rID);
+
     }
 
     private void close() {

@@ -17,11 +17,11 @@ import android.widget.ImageView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
-
 import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.activities.MainActivity;
 import com.zhuchao.android.tpk50ds.bridge.SelEffectBridge;
 import com.zhuchao.android.tpk50ds.data.App;
+
 import com.zhuchao.android.tpk50ds.databinding.ActivityPullBinding;
 import com.zhuchao.android.tpk50ds.utils.AppMain;
 
@@ -54,7 +54,7 @@ public class BottomAppDialog extends Dialog implements View.OnClickListener, Vie
         ((MainActivity) context).scanBottom();
 
         selEffectBridge = (SelEffectBridge) binding.pullMianup.getEffectBridge();
-        selEffectBridge.setUpRectResource(R.drawable.home_sel_btn);
+        selEffectBridge.setUpRectResource(R.drawable.home_sel_btn0);
 
         binding.pullTag9301.setOnClickListener(this);
         binding.pullTag9302.setOnClickListener(this);

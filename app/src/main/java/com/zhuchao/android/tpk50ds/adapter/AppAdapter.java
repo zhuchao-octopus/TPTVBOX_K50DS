@@ -8,7 +8,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 
-
 import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.data.App;
 import com.zhuchao.android.tpk50ds.utils.AppMain;

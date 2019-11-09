@@ -31,7 +31,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.FrameLayout;
 
-
 import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.bridge.BaseEffectBridge;
 import com.zhuchao.android.tpk50ds.bridge.SelEffectBridge;
@@ -144,6 +143,7 @@ public class MainUpView extends FrameLayout {
 		baseEffectBridge.onInitBridge(this);
 		baseEffectBridge.setMainUpView(this);
 		setEffectBridge(baseEffectBridge);
+		//invalidate();
 	}
 
 	/**

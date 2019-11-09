@@ -3,6 +3,9 @@ package com.zhuchao.android.tpk50ds.utils;
 import android.os.Handler;
 import android.os.Looper;
 
+import com.zhuchao.android.tpk50ds.utils.interceptors.HttpLoggingInterceptor;
+import com.zhuchao.android.tpk50ds.BuildConfig;
+
 import java.util.concurrent.TimeUnit;
 
 import me.jessyan.progressmanager.ProgressManager;
@@ -19,7 +22,10 @@ public class HttpUtils {
     Handler mHandler;
 
     private HttpUtils() {
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor();
+        loggingInterceptor.setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.NONE);
         okHttpClient = ProgressManager.getInstance().with(new OkHttpClient.Builder()
+                .addInterceptor(loggingInterceptor)
                 .connectTimeout(30, TimeUnit.SECONDS)
                 .readTimeout(30, TimeUnit.SECONDS)
                 .writeTimeout(30, TimeUnit.SECONDS)).build();

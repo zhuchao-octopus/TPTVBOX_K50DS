@@ -19,10 +19,9 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
+import com.zhuchao.android.tpk50ds.activities.MainActivity;
 import com.zhuchao.android.tpk50ds.BuildConfig;
 import com.zhuchao.android.tpk50ds.R;
-import com.zhuchao.android.tpk50ds.activities.MainActivity;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

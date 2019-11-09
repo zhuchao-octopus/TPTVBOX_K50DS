@@ -9,13 +9,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.activities.MainActivity;
+
 import com.zhuchao.android.tpk50ds.databinding.MenuDialogBinding;
 import com.zhuchao.android.tpk50ds.utils.AppHandler;
 import com.zhuchao.android.tpk50ds.utils.ShareAdapter;
@@ -94,7 +94,6 @@ public class HomeAppDialog extends Dialog implements View.OnClickListener,
 
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        Log.d("HomeAppDialog","HomeAppDialog -- onTouch:" + event);
         if (event.getAction() == MotionEvent.ACTION_UP) {
             return false;
         }

@@ -15,11 +15,11 @@
 #
 
 LOCAL_PATH := $(call my-dir)
-
 include $(CLEAR_VARS)
 
+NDK_APP_DST_DIR := $(NDK_APP_PROJECT_PATH)/jniLibs/$(TARGET_ARCH_ABI)
 TARGET_PLATFORM := android-3
-LOCAL_MODULE    := serial_port
+LOCAL_MODULE    := MySerialPort
 LOCAL_SRC_FILES := SerialPort.c
 LOCAL_LDLIBS    := -llog
 

@@ -2,7 +2,7 @@
 	"_appname": "天普语音服务",
 	"_appid": "",
 	"_sdk_version": "2",
-	"_pkgname": "com.zhuchao.android.tianpuhw",
+	"_pkgname": "com.zhuchao.android.tianpu",
 	"_commands": {
 		"openqqtv": [
 			"打开腾讯视频",
@@ -540,8 +540,8 @@
 			"切到金麦客输入"
 		],
 		"JHZTPFUN0001": [
-		    "打开USB",
-		    "打开tf卡",
+			"打开USB",
+			"打开tf卡",
 			"USB",
 			"sd卡",
 			"SD卡",
@@ -555,7 +555,7 @@
 			"TF卡播放",
 			"tf卡播放",
 			"SD卡播放",
-            "sd卡播放",
+			"sd卡播放",
 			"U盘播放",
 			"播放U盘歌曲",
 			"播放U盘",

@@ -2,6 +2,7 @@ package com.zhuchao.android.tpk50ds.activities;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.Instrumentation;
@@ -13,9 +14,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+
 import android.databinding.DataBindingUtil;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -24,17 +27,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.provider.Settings;
 import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.view.WindowManager;
+import android.view.ViewTreeObserver.OnGlobalFocusChangeListener;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -49,7 +53,6 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import com.google.gson.Gson;
 import com.stx.xhb.xbanner.XBanner;
 import com.stx.xhb.xbanner.transformers.Transformer;
-
 import com.zhuchao.android.tpk50ds.BuildConfig;
 import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.bridge.SelEffectBridge;
@@ -66,9 +69,10 @@ import com.zhuchao.android.tpk50ds.data.json.regoem.RecommendmarqueeBean;
 import com.zhuchao.android.tpk50ds.data.json.regoem.RecommendversionBean;
 import com.zhuchao.android.tpk50ds.data.json.regoem.RecommendvideoBean;
 import com.zhuchao.android.tpk50ds.data.json.regoem.RemoveAppBean;
+
 import com.zhuchao.android.tpk50ds.databinding.ActivityMainBinding;
 import com.zhuchao.android.tpk50ds.services.MyService;
-import com.zhuchao.android.tpk50ds.services.SerialService;
+import com.zhuchao.android.tpk50ds.services.iflytekService;
 import com.zhuchao.android.tpk50ds.utils.AppHandler;
 import com.zhuchao.android.tpk50ds.utils.AppManager;
 import com.zhuchao.android.tpk50ds.utils.GlideMgr;
@@ -99,6 +103,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import me.jessyan.progressmanager.ProgressListener;
 import me.jessyan.progressmanager.ProgressManager;
@@ -107,17 +113,14 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
 import okhttp3.Response;
-import utils.SerialPortUtils;
+import utils.MySerialPort;
 
+import static android.view.MotionEvent.ACTION_UP;
 import static com.zhuchao.android.tpk50ds.utils.PageType.HOME_TYPE;
 import static com.zhuchao.android.tpk50ds.utils.PageType.MY_APP_TYPE;
 import static com.zhuchao.android.tpk50ds.utils.PageType.RECENT_TYPE;
 
-
-/**
- *
- */
-public class MainActivity extends AppCompatActivity implements View.OnFocusChangeListener,
+public class MainActivity extends Activity implements OnTouchListener, OnGlobalFocusChangeListener,
         View.OnClickListener, TimeHandler.OnTimeDateListener, NetTool.OnNetListener,
         AppHandler.OnScanListener, AppHandler.OnAddRemoeveListener,
         View.OnKeyListener, AppHandler.OnBottomListener, WallperHandler.OnWallperUpdateListener, ServiceConnection {
@@ -126,13 +129,11 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
 
     private boolean isDownloadingMarket = false;
     private Mac_Dialog mdialog;
-    //private AudioManager mAudioMgr;
     private ActivityMainBinding binding;
     private SelEffectBridge selEffectBridge;
     private TimeHandler timeHandler;
     private NetTool netTool;
     public AppHandler appHandler;
-//    public WallperHandler wallperHandler;
 
     private HomeAppDialog homeAppDialog;
     private HomeAppsDialog homeAppsDialog;
@@ -142,20 +143,17 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     private boolean marqueeScanOK = false;
     private List<String> imgUrls;
 
-    private String lo;
+    private String mSerialData;
     //    private String img;
     private Context mContext;
     private int nba = 0;
     private String saveType = null;
     private String url;
-    private boolean bluetoothimg = false;
     private boolean isFive = false;
     private Drawable lastApps = null;
     private boolean isThelast = false;
     private boolean isDefault = true;
     private static HomeWatcherReceiver mHomeKeyReceiver = null;
-    private boolean isAudioKey = true;
-    //private static CountDownTimer mCountDownTimer;
     private MyReceiver receiver = null;
     private BootCompletedReceiver mBootCompletedReceiver = null;
     /**
@@ -183,255 +181,141 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     private ProgressBar[] pbItems;
     private TextView[] tvItems;
 
-    //    private SimpleDraweeView[] ivs;
     private ImageView[] ivs;
 
     String cacheImg = "";
     public static final String bootVideo = "/system/media/boot.mp4";
     public static final String newBootVideo = "/system/media/new_boot.zip";
-
-//    private String deviceId = "730";//TVBOX 中性版
-//    private String host = "http://cn.jhzappdev.com:8976/";    //国内
-//    private String appName = "TPDYX0";      //天谱
-//    private String lunchname = "TPDYX0";
-//    int cid = 47;    //客户号  (国内)
-
     private String deviceId = "750";//TVBOX 天谱
     private String host = "http://www.gztpapp.cn:8976/";    //天谱  （节流）
-
-    //    private String appName = "TPDYX0";      //天谱 （国内贝德）
-//    private String lunchname = "TPDYX0";
-    int cid = -1;    //客户号  (国内)  录入版
+    private int cid = -1;    //客户号  (国内)  录入版
     private String appName = "TP0BDK50DS";      //天谱 （国内万利达）
     private String lunchname = "TP0BDK50DS";
-//    private String appName = "TPHWBD";      //天谱(海外贝德)
-//    private String lunchname = "TPHWBD";
-//    private String appName = "TPHWM0";      //天谱
-//    private String lunchname = "TPHWM0";
 
 
-    String netMac;
-    String cidIP;   //设备的IP
-    String region; //设备所在地区
+    private String netMac;
+    private String cidIP;   //设备的IP
+    private String region; //设备所在地区
 
     private String lastoneApp = null;
 
     private String removeResult;
 
 
-    private SerialPortUtils serialPortUtils = new SerialPortUtils();
-    //private SerialService serialService;
+    private MySerialPort serialPortUtils = new MySerialPort(this);
+    private MyService myService;
     private Handler SerialPortReceivehandler;
     private byte[] SerialPortReceiveBuffer;
-    private byte[] BluetoothOpen = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0E, 0x7E};//蓝牙  K70 //  serialPortUtils.sendBuffer(BluetoothOpen,SizeOf(BluetoothOpen));
+    //private byte[] BluetoothOpen = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0E, 0x7E};//蓝牙  K70 //  serialPortUtils.sendBuffer(BluetoothOpen,SizeOf(BluetoothOpen));
     private byte[] BluetoothClose = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0D, 0x7E};//蓝牙  K50
     private int bluetooth = 0;
-    private byte[] CopperShaftLineIn = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x01, 0x0B, 0x7E};//同轴  K70
+    //private byte[] CopperShaftLineIn = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x01, 0x0B, 0x7E};//同轴  K70
     private byte[] CopperShaftClose = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x01, 0x0A, 0x7E};//同轴     K50
     private int coppershaft = 0;
-    private byte[] OpticalFiberLineIn = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x02, 0x0C, 0x7E};//光纤   K70
+    //private byte[] OpticalFiberLineIn = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x02, 0x0C, 0x7E};//光纤   K70
     private byte[] OpticalFiberClose = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x02, 0x0B, 0x7E};//光纤    K50
     private int opticalfiber = 0;
-    private byte[] SimulationLineIn = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, (byte) 0x80, 0x00, (byte) 0x8A, 0x7E};//模拟  K70
+    //private byte[] SimulationLineIn = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, (byte) 0x80, 0x00, (byte) 0x8A, 0x7E};//模拟  K70
     private byte[] SimulationLineInClose = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, (byte) 0x80, 0x00, (byte) 0x89, 0x7E};//模拟  K50
     private int simulation = 0;
-    private byte[] UsbOpen = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x08, 0x00, 0x12, 0x7E};//USB  K70
+    //private byte[] UsbOpen = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x08, 0x00, 0x12, 0x7E};//USB  K70
     private byte[] UsbClose = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x08, 0x00, 0x11, 0x7E};//USB  K50
 
-    private byte[] LastAppOpen = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x0A, 0x7E};//最后使用的app  K70
-    private byte[] LastAppClose = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//最后使用的app  K50
+    //private byte[] LastAppOpen = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x0A, 0x7E};//最后使用的app  K70
+    private byte[] LastChanelApp = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//最后使用的app  K50
 
-    private byte[] QueryState = {0x02, 0x01, 0x06, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x0A, 0x7E};//初始状态 K70 //
+    //private byte[] QueryState = {0x02, 0x01, 0x06, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x0A, 0x7E};//初始状态 K70 //
     private byte[] QueryStateK50 = {0x01, 0x01, 0x06, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//初始状态  K50
 
-    //private AudioMngHelper mAudioMngHelper = null;
-    //private byte[] QueryState =    {0x02, 0x01, 0x06, 0x00, 0x00, 0x01, 0x00,0x00, 0x0A, 0x7E};// 初始状态 K70 //
-    //private byte[] QueryStateK50 = {0x01, 0x01, 0x06, 0x00, 0x00, 0x01, 0x00, 0x00,0x09, 0x7E};//初始状态  K50
+    private static final String StartDragonTest = "1379";//测试
+    private static final String StartDragonAging = "2379";//老化
+    private static final String versionInfo = "3379";//版本信息
 
-    private int mIsStartFirst = 0;
-
-    private boolean isFirstResume = true;
+    private long oldTime = 0;
+    private String num = "";
+    private boolean isCharging = false;
+    private boolean blutoothConnected = false;
+    private View OldView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         //启动服务
-        createServiceClickS();
+        StartService();
 
         //跳转到广告视频界面
         //startVedioPlayerActivity();
         //kaijiziqi();
         mContext = this;
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
-        //binding = DataBindingUtil.setContentView(this, R.layout.activity_main);
 
-        //mAudioMgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
-
-        flItems = new FrameLayout[]{binding.fl1, binding.fl2, binding.historyFl};//需要下载k歌，腾讯视频，qq音乐
+        flItems = new FrameLayout[]{binding.fl1, binding.fl2, binding.fl4};//需要下载k歌，腾讯视频，qq音乐
         pbItems = new ProgressBar[]{binding.progressBar1, binding.progressBar2, binding.progressBar9};
         tvItems = new TextView[]{binding.tvState1, binding.tvState2, binding.tvState9};
-//        ivs = new SimpleDraweeView[]{binding.bgIv1, binding.bgIv8};
+        //ivs = new SimpleDraweeView[]{binding.bgIv1, binding.bgIv8};
         ivs = new ImageView[]{binding.bgIv1, binding.bgIv2};
 
-//        serialPort = serialPortUtils.openSerialPort();
-//        if (serialPort == null) {
-//            Log.e(TAG, "onCreate：串口打开失败！！！！！");
-//        } else {
-//            Log.e(TAG, "onCreate：串口打开成功！！！！！");
-//        }
-
-//        binding.topFl2.setOnFocusChangeListener(this);
-//        binding.topFl3.setOnFocusChangeListener(this);
-//        binding.topFl4.setOnFocusChangeListener(this);
-//        binding.topFl5.setOnFocusChangeListener(this);
-//        binding.topFl2.setOnClickListener(this);
-//        binding.topFl3.setOnClickListener(this);
-//        binding.topFl4.setOnClickListener(this);
-//        binding.topFl5.setOnClickListener(this);
         binding.fl5.setOnClickListener(this);
-        binding.fl5.setOnKeyListener(this);
+        //binding.fl5.setOnKeyListener(this);
         binding.fl6.setOnClickListener(this);
-        binding.fl6.setOnKeyListener(this);
+        //binding.fl6.setOnKeyListener(this);
         binding.fl3.setOnClickListener(this);
-        binding.fl3.setOnKeyListener(this);
-//        binding.fl4.setOnClickListener(this);
-//        binding.fl4.setOnKeyListener(this);
-        binding.flAdd1.setOnKeyListener(this);
-        binding.flAdd1.setOnClickListener(this);
-        binding.fl7.setOnKeyListener(this);
+        //binding.fl3.setOnKeyListener(this);
+        binding.fl4.setOnClickListener(this);
+        // binding.fl4.setOnKeyListener(this);
+        //binding.fl2.setOnKeyListener(this);
+        binding.fl2.setOnClickListener(this);
+        //binding.fl7.setOnKeyListener(this);
         binding.fl7.setOnClickListener(this);
-        binding.fl8.setOnKeyListener(this);
+        //binding.fl8.setOnKeyListener(this);
         binding.fl8.setOnClickListener(this);
         binding.fl1.setOnClickListener(this);
-        binding.fl1.setOnKeyListener(this);
-        binding.ad.setOnKeyListener(this);
+        //binding.fl1.setOnKeyListener(this);
+        // binding.ad.setOnKeyListener(this);
         binding.ad.setOnClickListener(this);
-        binding.historyFl.setOnClickListener(this);
-        binding.historyFl.setOnKeyListener(this);
-        binding.fl11.setOnKeyListener(this);
+        binding.fl4.setOnClickListener(this);
+        //binding.fl4.setOnKeyListener(this);
+        //binding.fl11.setOnKeyListener(this);
         binding.fl11.setOnClickListener(this);
-        binding.fl12.setOnKeyListener(this);
+        //binding.fl12.setOnKeyListener(this);
         binding.fl12.setOnClickListener(this);
-        binding.fl13.setOnKeyListener(this);
+        // binding.fl13.setOnKeyListener(this);
         binding.fl13.setOnClickListener(this);
-        binding.fl14.setOnKeyListener(this);
+        //binding.fl14.setOnKeyListener(this);
         binding.fl14.setOnClickListener(this);
-        binding.fl15.setOnKeyListener(this);
+        //binding.fl15.setOnKeyListener(this);
         binding.fl15.setOnClickListener(this);
-        binding.fl16.setOnKeyListener(this);
-        binding.fl16.setOnClickListener(this);
+        // binding.fl16.setOnKeyListener(this);
+        //binding.fl16.setOnClickListener(this);
         binding.fl2.setOnClickListener(this);
-        binding.fl2.setOnKeyListener(this);
-
-        binding.fl2.setOnFocusChangeListener(this);
-        binding.fl1.setOnFocusChangeListener(this);
-        //        binding.fl4.setOnFocusChangeListener(this);
-        binding.fl5.setOnFocusChangeListener(this);
-        binding.fl3.setOnFocusChangeListener(this);
-        binding.flAdd1.setOnFocusChangeListener(this);
-        binding.fl6.setOnFocusChangeListener(this);
-        binding.fl7.setOnFocusChangeListener(this);
-        binding.fl8.setOnFocusChangeListener(this);
-        binding.fl11.setOnFocusChangeListener(this);
-        binding.fl12.setOnFocusChangeListener(this);
-        binding.fl13.setOnFocusChangeListener(this);
-        binding.fl14.setOnFocusChangeListener(this);
-        binding.fl15.setOnFocusChangeListener(this);
-        binding.fl16.setOnFocusChangeListener(this);
-        binding.historyFl.setOnFocusChangeListener(this);
-        binding.ad.setOnFocusChangeListener(this);
-//        binding.flAdd1.setOnLongClickListener(this);
-
-        selEffectBridge = (SelEffectBridge) binding.mainUpView.getEffectBridge();
-        binding.topInfo.getViewTreeObserver().addOnGlobalFocusChangeListener(
-                new ViewTreeObserver.OnGlobalFocusChangeListener() {
-                    @Override
-                    public void onGlobalFocusChanged(View oldFocus, View newFocus) {
-//                        Log.e(TAG, "onGlobalFocusChanged " + newFocus + " " + oldFocus);
-                        if (newFocus == null) {
-                            return;
-                        }
-
-                        int focusVId = newFocus.getId();
-
-                        if (focusVId == R.id.fl7) {
-                            binding.mac.setVisibility(View.VISIBLE);
-                        } else {
-                            binding.mac.setVisibility(View.GONE);
-                        }
 
 
-                        switch (focusVId) {
-                            case R.id.ad:
-                                selEffectBridge.setUpRectResource(R.drawable.home_sel_btn);
-                                selEffectBridge.setVisibleWidget(false);
-                                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.1f);
-                                newFocus.bringToFront();
-                                break;
-                            case R.id.fl1:
-                            case R.id.fl3:
-                            case R.id.fl2:
-//                            case R.id.fl4:
-                            case R.id.history_fl:
-                                selEffectBridge.setUpRectResource(R.drawable.home_sel_btn);
-                                selEffectBridge.setVisibleWidget(false);
-                                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.3f);
-                                newFocus.bringToFront();
-//                                if (isDefault) {
-//                                    binding.fl16.requestFocus();
-//                                    isDefault = false;
-//                                }
-                                break;
-                            case R.id.fl_add1:
-                            case R.id.fl6:
-                            case R.id.fl7:
-                            case R.id.fl8:
-                                selEffectBridge.setUpRectResource(R.drawable.home_sel_btn);
-                                selEffectBridge.setVisibleWidget(false);
-                                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.2f);
-                                newFocus.bringToFront();
-//                                if (isDefault) {
-//                                    binding.fl16.requestFocus();
-//                                    isDefault = false;
-//                                }
-                                break;
-                            case R.id.fl5:
-                                selEffectBridge.setUpRectResource(R.drawable.but);
+        binding.fl0.setOnClickListener(this);
+        binding.fl0.setOnKeyListener(this);
 
-                                //false是选中通道选择是的白框显示，true就是不显示
-                                selEffectBridge.setVisibleWidget(false);
 
-                                //1.1f是通道选择框的大小
-                                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.1f);
-                                newFocus.bringToFront();
-                                break;
-                            case R.id.fl12:
-                            case R.id.fl13:
-                            case R.id.fl14:
-                            case R.id.fl15:
-                                selEffectBridge.setUpRectResource(R.drawable.bgmbgm);
-                                selEffectBridge.setVisibleWidget(false);
-                                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.2f);
-                                newFocus.bringToFront();
-                                break;
-                            case R.id.fl11:
-                                selEffectBridge.setUpRectResource(R.drawable.left);
-                                selEffectBridge.setVisibleWidget(false);
-                                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.2f);
-                                newFocus.bringToFront();
-                                break;
-                            case R.id.fl16:
-                                selEffectBridge.setUpRectResource(R.drawable.right);
-                                selEffectBridge.setVisibleWidget(false);
-                                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.2f);
-                                newFocus.bringToFront();
-                                break;
-                        }
-//                        binding.fl16.requestFocus();
-                    }
-                });
+        binding.fl11.setOnTouchListener(this);
+        binding.fl14.setOnTouchListener(this);
+        binding.fl15.setOnTouchListener(this);
+        //binding.fl16.setOnTouchListener(this);
+
+        binding.fl0.setOnTouchListener(this);
+        binding.fl1.setOnTouchListener(this);
+        binding.fl2.setOnTouchListener(this);
+
+
+        binding.fl3.setOnTouchListener(this);
+        binding.fl4.setOnTouchListener(this);
+        binding.fl6.setOnTouchListener(this);
+        binding.fl7.setOnTouchListener(this);
+        binding.fl8.setOnTouchListener(this);
+
+        binding.ad.setOnTouchListener(this);
+
+
+        binding.mainRl.getViewTreeObserver().addOnGlobalFocusChangeListener(this);
 
         //时间更新
         timeHandler = new TimeHandler(this);
@@ -448,35 +332,23 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         appHandler.scanRecent();
         appHandler.scan();
 
-        binding.mac.setVisibility(View.GONE);
+        //binding.mac.setVisibility(View.GONE);
         String mac = Utils.getDevID().toUpperCase();
         binding.mac.setText(String.format("MAC: %s", mac));
         NetTool.setMac(mac);
         binding.scrollTv.setText("欢迎来到天谱！Welcome to Tianpu!欢迎来到天谱！Welcome to Tianpu!欢迎来到天谱！Welcome to Tianpu!");
-        binding.scrollTv.startScroll();
+        binding.scrollTv.setSelected(true);
 
 
-        bindService(new Intent(this, SerialService.class), this, BIND_AUTO_CREATE);
-        Intent iii;
-        iii = new Intent(MainActivity.this, MyService.class);
-        Log.d(TAG, "start MyService");
-        startService(iii);
-
-        SerialPortReceivehandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                super.handleMessage(msg);
-            }
-        };
-
+        bindService(new Intent(this, MyService.class), this, BIND_AUTO_CREATE);
 
         binding.ivFill.setVisibility(View.GONE);
-        initCache();
+        //initCache();
 
-        binding.flAdd1.setOnLongClickListener(new View.OnLongClickListener() {
+        binding.fl2.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                lunchHomeAppDialog(v.getTag(), R.id.fl_add1);
+                lunchHomeAppDialog(v.getTag(), R.id.fl2);
                 return true;
             }
         });
@@ -485,19 +357,21 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         //注册广播接收器
         receiver = new MyReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.zhuchao.android.tianpuhw.services");
-        filter.addAction("com.zhuchao.android.tpk50ds");
-        filter.addAction("com.zhuchao.android.tpk50ds.source");
-        MainActivity.this.registerReceiver(receiver, filter);
+        filter.addAction("com.zhuchao.android.tianpu.services");
+        registerReceiver(receiver, filter);
 
         mBootCompletedReceiver = new BootCompletedReceiver();
         filter = new IntentFilter();
         filter.addAction("com.iflytek.xiri.init.start");
         filter.addAction("android.intent.action.BOOT_COMPLETED");
-        MainActivity.this.registerReceiver(mBootCompletedReceiver, filter);
+        registerReceiver(mBootCompletedReceiver, filter);
 
+        Intent iii;
+        iii = new Intent(MainActivity.this, iflytekService.class);
+        Log.d(TAG, "start iflytekService");
+        startService(iii);
 
-        requestPermition();
+        //requestPermition();
 
         new Thread() {
             @Override
@@ -513,263 +387,11 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 }
             }
         }.start();
-    }
-    private void startVedioPlayerActivity() {
-        Intent intent1 = new Intent();
-        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        ComponentName cn = new ComponentName("com.zhuchao.android.tianpuhw", "com.zhuchao.android.tianpuhw.activities.VideoActivity");
-        intent1.setComponent(cn);
-        startActivity(intent1);
-    }
-
-   /*
-   private void kaijiziqi() {
-        Intent intent = getPackageManager().getLaunchIntentForPackage("com.tencent.karaoketv");
-        if (intent != null) {
-            startActivity(intent);
-        } else {
-            Toast.makeText(getApplicationContext(), "未安装全民K歌", Toast.LENGTH_LONG).show();
-        }
-    }
-    */
-
-    //传参数的服务
-    public void createServiceClick(byte[] bytes) {
-        Intent intent = new Intent(this, SerialService.class);
-        if (bytes != null) {
-            intent.putExtra("serial", bytes);
-        }
-        //启动servicce服务
-        startService(intent);
-    }
-
-    //不传参数的服务
-    public void createServiceClickS() {
-        Intent intent = new Intent(this, SerialService.class);
-        //启动servicce服务
-        startService(intent);
-    }
-
-    private void theLastOne() {
-        String lastApp = ShareAdapter.getInstance().getStr("last_app");
-        if (null != lastApp && !"".equals(lastApp)) {
-            for (int i = 0; i < appHandler.saAPP.size(); i++) {
-                if (lastApp.equals(appHandler.saAPP.get(i).getPackageName())) {
-                    App app = appHandler.saAPP.get(i);
-                    Log.e("Tag", "appp=" + app);
-                    binding.ivLastone.setBackground(app.getIcon());
-                    lastoneApp = app.getPackageName();
-                    lastApps = app.getIcon();
-                }
-            }
-            if (isThelast) {
-                binding.bgIcon.setVisibility(View.VISIBLE);
-                binding.bgIv5.setImageResource(R.drawable.bb2);
-                GlideMgr.loadNormalDrawableImg(mContext, lastApps, binding.bgIcon);
-            }
-        }
-    }
 
 
-    /**
-     * 初始化缓存
-     */
-    private void initCache() {
-        String type = getSharedPreferences("saveType", MODE_PRIVATE).getString("saveType", null);
-        Log.e("tag", "type=" + type);
-        if (null != type && !"".equals(type)) {
-            saveType = type;
-            isThelast = false;
-            if (saveType != null) {
-                if (saveType.equals("同轴")) {
-                    createServiceClick(CopperShaftLineIn);
-                    createServiceClick(CopperShaftClose);
-                    binding.bgIv112.setImageResource(R.drawable.xsa);
-                    binding.bgIv5.setImageResource(R.drawable.tz);
-                    binding.bluetooth.setVisibility(View.GONE);
-                    binding.bgIcon.setVisibility(View.GONE);
-                } else if (saveType.equals("蓝牙")) {
-                    createServiceClick(BluetoothOpen);
-                    createServiceClick(BluetoothClose);
-                    binding.bgIv111.setImageResource(R.drawable.xsb);
-                    binding.bgIv5.setImageResource(R.drawable.ly);
-                    binding.bluetooth.setVisibility(View.VISIBLE);
-                    binding.bluetooth.setImageResource(R.drawable.bluetoothno);
-                    binding.bgIcon.setVisibility(View.GONE);
-                } else if (saveType.equals("光纤")) {
-                    createServiceClick(OpticalFiberLineIn);
-                    createServiceClick(OpticalFiberClose);
-                    binding.bgIv113.setImageResource(R.drawable.xsd);
-                    binding.bgIv5.setImageResource(R.drawable.opt);
-                    binding.bluetooth.setVisibility(View.GONE);
-                    binding.bgIcon.setVisibility(View.GONE);
-                } else if (saveType.equals("模拟")) {
-                    createServiceClick(SimulationLineIn);
-                    createServiceClick(SimulationLineInClose);
-                    binding.bgIv114.setImageResource(R.drawable.xsc);
-                    binding.bgIv5.setImageResource(R.drawable.mn);
-                    binding.bluetooth.setVisibility(View.GONE);
-                    binding.bgIcon.setVisibility(View.GONE);
-                } else if (saveType.equals("player")) {
-                    createServiceClick(UsbOpen);
-                    createServiceClick(UsbClose);
-                    binding.bgIv115.setImageResource(R.drawable.xse);
-                    binding.bgIv5.setImageResource(R.drawable.usbortf);
-                    binding.bluetooth.setVisibility(View.GONE);
-                    binding.bgIcon.setVisibility(View.GONE);
-                } else if (saveType.equals("last")) {
-                    createServiceClick(LastAppOpen);
-                    createServiceClick(LastAppClose);
-                    binding.bgIv116.setImageResource(R.drawable.blue6);
-                    binding.bluetooth.setVisibility(View.GONE);
-                    isThelast = true;
-                }
-            } else {
-                //binding.fl16.requestFocus();
-            }
-        }
-
-        //app
-        String cache_app = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_cache", null);
-        if (cache_app != null) {
-            recommendBean = new Gson().fromJson(cache_app, RecommendBean.class);
-            final List<RecommendBean.DataBean> data = recommendBean.getData();
-            if (data != null && data.size() >= ivs.length) {
-                for (int i = 0; i < ivs.length; i++) {
-                    if (!TextUtils.isEmpty(data.get(i).getSyy_app_img())) {
-                        //glide
-                        if (true) {
-                            cacheImg += i + ": " + data.get(i).getSyy_app_img() + "\n";
-                            Glide.with(mContext).load(data.get(i).getSyy_app_img()).into(ivs[i]);
-                            continue;
-                        }
-                        //fresco
-                        FileBinaryResource resource = (FileBinaryResource) Fresco.getImagePipelineFactory().getMainFileCache().getResource(new SimpleCacheKey(data.get(i).getSyy_app_img()));
-                        if (resource != null) {
-                            File file = resource.getFile();
-                            cacheImg += i + ": " + file.getPath() + "\n";
-                            ivs[i].setImageURI(Uri.fromFile(file));
-//                            Glide.with(mContext).load(file).into(ivs[i]);
-                        } else {
-                            cacheImg += i + ": " + data.get(i).getSyy_app_img() + "\n";
-                            ivs[i].setImageURI(Uri.parse(data.get(i).getSyy_app_img()));
-                        }
-
-
-                    }
-
-                }
-            }
-            //加载指定app主页图片
-            if (data != null && data.size() != 0) {
-                for (int i = 0; i < data.size(); i++) {
-                    String pkn = data.get(i).getSyy_app_packageName();
-                    String img = data.get(i).getSyy_appstatus_img();
-                    if (!"".equals(img) && null != img) {
-                        stImg.put(pkn, img);
-                    }
-                }
-                //显示清理缓存的文字
-//                if (data.size() >= 3 && data.get(2).getSyy_app_name() != null) {
-//                    binding.titleTv8.setVisibility(View.VISIBLE);
-//                    binding.titleTv8.setText(data.get(2).getSyy_app_name());
-//                }
-            }
-        }
-        //跑马灯
-        String cache_marquee = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_marquee_cache", null);
-        if (cache_marquee != null) {
-            recommendmarqueeBean = new Gson().fromJson(cache_marquee, RecommendmarqueeBean.class);
-            final RecommendmarqueeBean.DataBean data = recommendmarqueeBean.getData();
-            if (data != null) {
-                if (!TextUtils.isEmpty(data.getMarquee()))
-                    binding.scrollTv.setText(data.getMarquee());
-            }
-        }
-        //广告
-        String cache_ad = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_ad_cache", null);
-        if (cache_ad != null) {
-            recommend3Bean = new Gson().fromJson(cache_ad, Recommend3Bean.class);
-            final List<Recommend3Bean.DataBean> data = recommend3Bean.getData();
-            if (data != null && data.size() != 0) {
-                binding.adBg.stopAutoPlay();
-                binding.adBg.setData(R.layout.ad_item, data, null);
-                binding.adBg.setmAdapter(new XBanner.XBannerAdapter() {
-                    @Override
-                    public void loadBanner(XBanner banner, Object model, View view, int position) {
-                        String url = data.get(position).getCy_advertisement_imgAddress();
-                        if (!TextUtils.isEmpty(url)) {
-//                            ((SimpleDraweeView) view).setImageURI(Uri.parse(data3.get(position).getCy_advertisement_imgAddress()));
-                            Glide.with(mContext).load(url).into((SimpleDraweeView) view);
-                        }
-                    }
-                });
-                binding.adBg.startAutoPlay();
-            }
-        }
-        //logo
-        String cache_logo = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_logo_cache", null);
-        if (cache_logo != null) {
-            recommendlogoBean = new Gson().fromJson(cache_logo, RecommendlogoBean.class);
-            final RecommendlogoBean.DataBean data = recommendlogoBean.getData();
-            //显示品牌logo
-            if (data != null) {
-                if (!TextUtils.isEmpty(data.getSyy_special_fileOne())) {
-                    Glide.with(mContext).load(data.getSyy_special_fileOne()).into(binding.logoIv);
-                }
-            }
-
-        }
+        selEffectBridge = (SelEffectBridge) binding.mainUpView.getEffectBridge();
+        binding.mainRl.getViewTreeObserver().addOnGlobalFocusChangeListener(this);
         setupItemBottomTag();
-        //背景图
-        String cache_bg = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_bg_cache", null);
-        if (cache_bg != null) {
-            recommendbgBean = new Gson().fromJson(cache_bg, RecommendbgBean.class);
-            final List<RecommendbgBean.DatabgBean> data = recommendbgBean.getData();
-            if (data != null && data.size() != 0) {
-                for (int i = 0; i < data.size(); i++) {
-                    if (!TextUtils.isEmpty(data.get(i).getBackgroundImgAddress())) {
-                        Glide.with(mContext).load(data.get(i).getBackgroundImgAddress()).into(binding.ivBg);
-                    }
-                }
-            }
-        }
-
-    }
-
-    @SuppressLint("LongLogTag")
-    private void registerHomeKeyReceiver(Context context) {
-        Log.i(TAG, "registerHomeKeyReceiver");
-        mHomeKeyReceiver = new HomeWatcherReceiver();
-        final IntentFilter homeFilter = new IntentFilter(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
-        context.registerReceiver(mHomeKeyReceiver, homeFilter);
-    }
-
-    @SuppressLint("LongLogTag")
-    private void unregisterHomeKeyReceiver(Context context) {
-        Log.i(TAG, "unregisterHomeKeyReceiver");
-        if (null != mHomeKeyReceiver) {
-            context.unregisterReceiver(mHomeKeyReceiver);
-        }
-    }
-
-    /**
-     * 设置item底部标签
-     */
-    private void setupItemBottomTag() {
-//        List<RecommendBean.DataBean> data = recommendBean.getData();
-        for (int i = 0; i < pbItems.length; i++) {
-//            if (AppManager.isInstallApp(mContext, data.get(i).getSyy_app_packageName())) {
-//                pbItems[i].setVisibility(View.GONE);
-//                tvItems[i].setVisibility(View.GONE);
-//            } else {
-//                pbItems[i].setVisibility(View.VISIBLE);
-//                tvItems[i].setVisibility(View.VISIBLE);
-//            }
-            //todo 全部隐藏
-            pbItems[i].setVisibility(View.GONE);
-            tvItems[i].setVisibility(View.GONE);
-        }
     }
 
     @Override
@@ -785,8 +407,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         if (bottomAppDialog != null) {
             appHandler.scanBottom();
         }
-        createServiceClick(QueryState);
-        createServiceClick(QueryStateK50);
     }
 
     @Override
@@ -798,26 +418,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         netTool.unRegisterNetReceiver();
         appHandler.unRegAppReceiver();
         binding.adBg.stopAutoPlay();
-
-
-        isAudioKey = false;
-        createServiceClick(LastAppOpen);
-        createServiceClick(LastAppClose);
-
-        if ((mIsStartFirst == 0)) {
-            binding.fl2.requestFocus();
-            mIsStartFirst = -1;
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        appHandler.scanRecent();
-        appHandler.scan();
-        unregisterHomeKeyReceiver(this);
-        Log.d(TAG, "onPause");
-
     }
 
     /**
@@ -833,36 +433,37 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     @Override
     protected void onResume() {
         super.onResume();
-        //theLastOne();
+        //gotTheLastOne();
+        pauseMusic();
         binding.adBg.startAutoPlay();
         registerHomeKeyReceiver(this);
-        final View rootview = MainActivity.this.getWindow().getDecorView();
+        //mBatteryHandler.post(mBatteryRunnable);
+        View rootview = MainActivity.this.getWindow().getDecorView();
         View v = rootview.findFocus();
-        if (v == null) {
-            binding.fl1.setFocusable(true);
-            binding.fl1.requestFocus();
+
+        if (OldView != null) {
+            OldView.requestFocus();
+        } else {
+            binding.fl0.setFocusable(true);
+            binding.fl0.requestFocus();
         }
         new Thread() {
             @Override
             public void run() {
-
-                pauseMusic();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         while (true) {
                             View v = rootview.findFocus();
                             if (v != null) {
-                                Rect rect = new Rect();
                                 ViewGroup root = (ViewGroup) rootview;
+                                Rect rect = new Rect();
                                 root.offsetDescendantRectToMyCoords(v, rect);
                                 if (rect.left > 0 && rect.right > 0) {
-                                    selEffectBridge.setUpRectResource(R.drawable.home_sel_btn);
-                                    selEffectBridge.setVisibleWidget(false);
-                                    binding.mainUpView.setFocusView(v, null, 1.2f);
-                                    v.bringToFront();
+                                    setFocuseEffect(v);
                                     break;
                                 }
+
                             }
                         }
                     }
@@ -870,6 +471,17 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
 
             }
         }.start();
+
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        appHandler.scanRecent();
+        appHandler.scan();
+
+        unregisterHomeKeyReceiver(this);
+        //mBatteryHandler.removeCallbacksAndMessages(null);
     }
 
 
@@ -890,208 +502,139 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         netTool = null;
     }
 
-    @Override
-    public void onFocusChange(View v, boolean hasFocus) {
-//        Log.e(TAG, "onFocusChange " + v+"    saveType="+saveType);
-
-        switch (v.getId()) {
-
-            case R.id.fl1: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.bgIv1.setImageResource(
-//                        hasFocus ? R.drawable.tp1: R.drawable.tp1);
-                binding.fl1.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv2.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-
-            case R.id.fl2: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv3.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv3_focused : R.drawable.icon_iv3);
-                binding.fl2.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv3.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-
-            case R.id.fl5: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.1f : 1.0f;
-//              binding.topIv4.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv4_focused : R.drawable.icon_iv4);
-                binding.fl5.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv4.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-
-            case R.id.fl_add1: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.flAdd1.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl3: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl3.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl6: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl6.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl7: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl7.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl8: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl8.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl11: {
-//                binding.bgIv5.setImageResource(R.drawable.ly);
-//                saveType = "蓝牙";
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl11.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl12: {
-//                binding.bgIv5.setImageResource(R.drawable.tz);
-//                saveType = "同轴";
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl12.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl13: {
-//                binding.bgIv5.setImageResource(R.drawable.opt);
-//                saveType = "光纤";
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl13.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl14: {
-//                binding.bgIv5.setImageResource(R.drawable.mn);
-//                saveType = "模拟";
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl14.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl15: {
-//                binding.bgIv5.setImageResource(R.drawable.uu);
-//                saveType = "player";
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl15.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.fl16: {
-
-//                saveType = "last";
-//                ShowMasterPages();
-//                selEffectBridge.setVisibleWidget(false);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.fl16.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.ad: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.1f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.ad.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-            case R.id.history_fl: {
-//                selEffectBridge.setVisibleWidget(true);
-                float scale = hasFocus ? 1.2f : 1.0f;
-//                binding.topIv5.setImageResource(
-//                        hasFocus ? R.drawable.icon_iv5_focused : R.drawable.icon_iv5);
-                binding.historyFl.animate().scaleX(scale).scaleY(scale).start();
-//                binding.topTv5.setVisibility(hasFocus ? View.VISIBLE : View.INVISIBLE);
-                return;
-            }
-        }
-        getSharedPreferences("saveType", MODE_PRIVATE).edit().putString("saveType", saveType).commit();
-    }
-
-    /**
-     * 显示指定app的主页
-     */
-    private void ShowMasterPages() {
-        int s = -1;
-        if (null != stImg) {
-            Iterator<String> it = stImg.keySet().iterator();
-            while (it.hasNext()) {
-                String key = it.next();
-                if (null != lastoneApp) {
-                    if (key.equals(lastoneApp)) {
-                        Glide.with(mContext).load(stImg.get(key)).into(binding.bgIv5);
-                        s = 1;
-                    }
-                } else {
-                    binding.bgIv5.setImageResource(R.drawable.tp10);
-                }
-            }
-            if (s == -1) {
-                binding.bgIv5.setImageResource(R.drawable.tp10);
-            }
-        } else {
-            binding.bgIv5.setImageResource(R.drawable.tp10);
-        }
-    }
-
 
     @Override
     public void onClick(View v) {
+        //v.requestFocus();
         handleViewKey(v, -1, true);
+        return;
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        v.requestFocus();
+        if (event.getAction() == ACTION_UP)
+            handleViewKey(v, -1, true);
+
+        return true;//super.onTouchEvent(event);
+    }
+
+    @Override
+    public boolean onKey(View v, int keyCode, KeyEvent event) {
+        //Log.e("key","onKey>>>>keyCode="+keyCode+"    KeyEvent="+event);
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_MENU:
+                    //Toast.makeText(mContext, "menu1", Toast.LENGTH_SHORT).show();
+                    handleViewKey(v, keyCode, false);
+                    break;
+                case KeyEvent.KEYCODE_DPAD_DOWN:
+                    //todo 底部弹窗
+                    //handleViewKeyDown(v);
+                    break;
+                case KeyEvent.KEYCODE_HOME:
+                case KeyEvent.KEYCODE_BACK:
+                    binding.ivFill.setVisibility(View.GONE);
+
+                    break;
+            }
+        }
+
+        return super.onKeyDown(keyCode, event);
+    }
+
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        Log.e("key","onKeyDown>>>>>event="+keyCode);
+
+        if (keyCode == KeyEvent.KEYCODE_HOME) {
+            binding.ivFill.setVisibility(View.GONE);
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_BACK) {
+            binding.ivFill.setVisibility(View.GONE);
+            inputNumber("BACK");
+            return true;
+        } else {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_0:// 0
+                    inputNumber("0");
+                    break;
+                case KeyEvent.KEYCODE_1:// 1
+                    inputNumber("1");
+                    break;
+                case KeyEvent.KEYCODE_2:// 2
+                    inputNumber("2");
+                    break;
+                case KeyEvent.KEYCODE_3:// 3
+                    inputNumber("3");
+                    break;
+                case KeyEvent.KEYCODE_4:// 4
+                    inputNumber("4");
+                    break;
+                case KeyEvent.KEYCODE_5:// 5
+                    inputNumber("5");
+                    break;
+                case KeyEvent.KEYCODE_6:// 6
+                    inputNumber("6");
+                    break;
+                case KeyEvent.KEYCODE_7:// 7
+                    inputNumber("7");
+                    break;
+                case KeyEvent.KEYCODE_8:// 8
+                    inputNumber("8");
+                    break;
+                case KeyEvent.KEYCODE_9:// 9
+                    inputNumber("9");
+                    break;
+                case KeyEvent.KEYCODE_F1: //F1
+                    inputNumber("F1");
+                    break;
+                case KeyEvent.KEYCODE_F2:    //F2
+                    inputNumber("F2");
+                    break;
+                case KeyEvent.KEYCODE_F3:     //F3
+                    inputNumber("F3");
+                    break;
+                case KeyEvent.KEYCODE_MENU:
+                case KeyEvent.KEYCODE_F11:    //天普遥控器的设置键
+                    openSettings();
+                    break;
+                case KeyEvent.KEYCODE_G:      //天普遥控器的USB键
+                    launchApp("com.android.music");
+                    break;
+                case KeyEvent.KEYCODE_DPAD_UP:
+                    break;
+                case KeyEvent.KEYCODE_ENTER:
+                    View rootview = this.getWindow().getDecorView();
+                    int focusId = rootview.findFocus().getId();
+                    Log.i(TAG, "id = 0x" + Integer.toHexString(focusId));
+                    break;
+            }
+            if (keyCode == KeyEvent.KEYCODE_F3) {
+                binding.bgIv5.setImageResource(R.drawable.gq1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                binding.bgIv5.bringToFront();
+                //return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_F2) {
+                binding.bgIv5.setImageResource(R.drawable.mn1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                //return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_F1) {
+                binding.bgIv5.setImageResource(R.drawable.ly1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                //return true;
+            }
+            if (keyCode == KeyEvent.KEYCODE_F4) {
+                binding.bgIv5.setImageResource(R.drawable.tz1);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+                //return true;
+            }
+            return super.onKeyDown(keyCode, event);
+        }
+    }
 
     @Override
     public void onTimeDate(String time, String date) {
@@ -1118,7 +661,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
             } else if (!"".equals(w) && null != w) {
                 netMac = w;   //设备的WIFI的mac地址
             }
-//            if (BuildConfig.DEBUG) netMac = "28:07:0D:00:40:BD";
+
             new Thread() {
                 @Override
                 public void run() {
@@ -1130,15 +673,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                     }
                 }
             }.start();
-//            if (!wallperHandler.dataOk()) {
-//                wallperHandler.scanWallper();
-//            }
-//            if (false || !updateScanOK) {
-//                new UpdateTask().start();
-//            }
-//            if (false || !marqueeScanOK) {
-//                new MarqueeTask().start();
-//            }
+
             if (!binding.netIv.isShown()) {
                 binding.netIv.setVisibility(View.VISIBLE);
             }
@@ -1161,7 +696,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
             }
         } else {
             binding.netIv.setImageResource(R.drawable.netno);
-//            binding.netIv.setVisibility(View.INVISIBLE);
+            //binding.netIv.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -1201,60 +736,40 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
      */
     @Override
     public void addRemove(int id, App app) {
-//        Log.d(TAG, String.format("addRemove %d %s", id, app));
-//        if (true) {
-//            return;
-//        }
         switch (id) {
-            case R.id.fl_add1: {
+            case R.id.fl2: {
                 GlideMgr.loadNormalDrawableImg(MainActivity.this,
                         app.getIcon(), binding.ivAdd1);
                 binding.tvAdd1.setText(app.getName());
-                binding.flAdd1.setTag(app.getPackageName());
+                binding.fl2.setTag(app.getPackageName());
                 return;
             }
+        }
+    }
 
-//            case R.id.fl6: {
-//                GlideMgr.loadNormalDrawableImg(MainActivity.this,
-//                        app.getIcon(), binding.iconIv6);
-//                binding.titleTv6.setText(app.getName());
-//                binding.fl6.setTag(app.getPackageName());
-//                return;
-//            }
-//            case R.id.fl4: {
-//                GlideMgr.loadNormalDrawableImg(MainActivity.this,
-//                        app.getIcon(), binding.iconIv4);
-//                binding.titleTv4.setText(app.getName());
-//                binding.fl4.setTag(app.getPackageName());
-//                return;
-//            }
-//            case R.id.fl3: {
-//                GlideMgr.loadNormalDrawableImg(MainActivity.this,
-//                        app.getIcon(), binding.iconIv3);
-//                binding.titleTv3.setText(app.getName());
-//                binding.fl3.setTag(app.getPackageName());
-//                return;
-//            }
-//            case R.id.recent_iv1: {
-//                GlideMgr.loadNormalDrawableImg(MainActivity.this,
-//                        app.getIcon(), binding.recentIv1);
-//                return;
-//            }
-//            case R.id.recent_iv2: {
-//                GlideMgr.loadNormalDrawableImg(MainActivity.this,
-//                        app.getIcon(), binding.recentIv2);
-//                return;
-//            }
-//            case R.id.recent_iv3: {
-//                GlideMgr.loadNormalDrawableImg(MainActivity.this,
-//                        app.getIcon(), binding.recentIv3);
-//                return;
-//            }
-//            case R.id.recent_iv4: {
-//                GlideMgr.loadNormalDrawableImg(MainActivity.this,
-//                        app.getIcon(), binding.recentIv4);
-//                return;
-//            }
+    /**
+     * 显示指定app的主页
+     */
+    private void ShowMasterPages() {
+        int s = -1;
+        if (null != stImg) {
+            Iterator<String> it = stImg.keySet().iterator();
+            while (it.hasNext()) {
+                String key = it.next();
+                if (null != lastoneApp) {
+                    if (key.equals(lastoneApp)) {
+                        Glide.with(mContext).load(stImg.get(key)).into(binding.bgIv5);
+                        s = 1;
+                    }
+                } else {
+                    binding.bgIv5.setImageResource(R.drawable.tp10);
+                }
+            }
+            if (s == -1) {
+                binding.bgIv5.setImageResource(R.drawable.tp10);
+            }
+        } else {
+            binding.bgIv5.setImageResource(R.drawable.tp10);
         }
     }
 
@@ -1298,18 +813,13 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
      */
     private void handleViewKey(View v, int keyCode, boolean isClick) {
         int id = v.getId();
-        if (id != R.id.fl16 && id != R.id.ad && id != R.id.fl11 && id != R.id.fl12 && id != R.id.fl13 && id != R.id.fl14 && id != R.id.fl15 && id != R.id.fl5) {
-            createServiceClick(LastAppOpen);
-            createServiceClick(LastAppClose);
-            isAudioKey = false;
-        }
         switch (id) {
             /**下面内容**/
             case R.id.fl11:
                 //蓝牙
                 binding.bgIv111.setImageResource(R.drawable.xsb);
                 binding.bgIv113.setImageResource(R.drawable.xac);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv114.setImageResource(R.drawable.xad);
                 binding.bgIv115.setImageResource(R.drawable.xae);
@@ -1320,14 +830,15 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 isThelast = false;
                 saveType = "蓝牙";
                 binding.bgIcon.setVisibility(View.GONE);
-                createServiceClick(BluetoothOpen);
-                createServiceClick(BluetoothClose);
+                //StartServiceSendBytes(BluetoothOpen);
+                StartServiceSendBytes(BluetoothClose);
+                binding.fl11.requestFocus();
                 break;
             case R.id.fl12:
                 //同轴
                 binding.bgIv112.setImageResource(R.drawable.xsa);
                 binding.bgIv113.setImageResource(R.drawable.xac);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
                 binding.bgIv111.setImageResource(R.drawable.xaa);
                 binding.bgIv114.setImageResource(R.drawable.xad);
                 binding.bgIv115.setImageResource(R.drawable.xae);
@@ -1337,13 +848,13 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 binding.bgIcon.setVisibility(View.GONE);
                 coppershaft++;
                 isThelast = false;
-                createServiceClick(CopperShaftLineIn);
-                createServiceClick(CopperShaftClose);
+                //StartServiceSendBytes(CopperShaftLineIn);
+                StartServiceSendBytes(CopperShaftClose);
                 break;
             case R.id.fl13:
                 //光纤
                 binding.bgIv113.setImageResource(R.drawable.xsd);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
                 binding.bgIv111.setImageResource(R.drawable.xaa);
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv114.setImageResource(R.drawable.xad);
@@ -1354,13 +865,13 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 binding.bgIcon.setVisibility(View.GONE);
                 opticalfiber++;
                 isThelast = false;
-                createServiceClick(OpticalFiberLineIn);
-                createServiceClick(OpticalFiberClose);
+                //StartServiceSendBytes(OpticalFiberLineIn);
+                StartServiceSendBytes(OpticalFiberClose);
                 break;
             case R.id.fl14:
                 //模拟
                 binding.bgIv114.setImageResource(R.drawable.xsc);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
                 binding.bgIv111.setImageResource(R.drawable.xaa);
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv113.setImageResource(R.drawable.xac);
@@ -1370,13 +881,14 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 saveType = "模拟";
                 isThelast = false;
                 binding.bgIcon.setVisibility(View.GONE);
-                createServiceClick(SimulationLineIn);
-                createServiceClick(SimulationLineInClose);
+                //StartServiceSendBytes(SimulationLineIn);
+                StartServiceSendBytes(SimulationLineInClose);
+                binding.fl14.requestFocus();
                 break;
             case R.id.fl15:
                 //系统播放器
                 binding.bgIv115.setImageResource(R.drawable.xse);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
                 binding.bgIv111.setImageResource(R.drawable.xaa);
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv113.setImageResource(R.drawable.xac);
@@ -1386,15 +898,13 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 isThelast = false;
                 saveType = "player";
                 binding.bgIcon.setVisibility(View.GONE);
-
-                //launchApp("com.softwinner.TvdFileManager");
-                //createServiceClick(UsbOpen);
-                //createServiceClick(UsbClose);
+                StartServiceSendBytes(UsbClose);
                 launchApp("com.android.music");
+                binding.fl15.requestFocus();
                 break;
-            case R.id.fl16:
+/*            case R.id.fl16:
                 //最后一个使用的app
-                binding.bgIv116.setImageResource(R.drawable.blue6);
+                //binding.bgIv116.setImageResource(R.drawable.blue6);
                 binding.bgIv111.setImageResource(R.drawable.xaa);
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv113.setImageResource(R.drawable.xac);
@@ -1402,32 +912,35 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 binding.bgIv115.setImageResource(R.drawable.xae);
                 binding.bluetooth.setVisibility(View.GONE);
                 isThelast = true;
-                isAudioKey = true;
                 saveType = "last";
                 if (null != lastoneApp) {
                     launchApp(lastoneApp);
                 }
-                createServiceClick(LastAppOpen);
-                createServiceClick(LastAppClose);
-                break;
-            case R.id.history_fl:
-//                AppsActivity.lunchAppsActivity(this, RECENT_TYPE);
-//                handleClick(2, keyCode);
+                switchToOtherChanel(v.getClass().getName());
+                break;*/
+            case R.id.fl4:
                 //QQ音乐
+                switchToOtherChanel("QQ音乐");
                 launchApp(PackageName.qqMusic);
+                binding.fl4.requestFocus();
                 break;
-            case R.id.fl1:
+            case R.id.fl0:
                 //全民k歌
-//                handleClick(0, keyCode);
+                switchToOtherChanel("全民k歌");
                 launchApp(PackageName.qmSing);
+                binding.fl0.requestFocus();
                 break;
             case R.id.fl6:
                 //文件管理器
+                switchToOtherChanel("文件管理器");
                 launchApp("com.android.rockchip");
+                binding.fl6.requestFocus();
                 break;
             case R.id.fl3:
                 //我的应用
+                switchToOtherChanel(v.getClass().getName());
                 AppsActivity.lunchAppsActivity(this, MY_APP_TYPE);
+                binding.fl3.requestFocus();
                 break;
             case R.id.fl5:
                 if (null != saveType && !"".equals(saveType)) {
@@ -1437,7 +950,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                         binding.bluetooth.setVisibility(View.VISIBLE);
                         binding.bluetooth.setImageResource(R.drawable.bluetoothno);
                         binding.bgIcon.setVisibility(View.GONE);
-                        //onClick(binding.fl11);
+
                         bluetooth++;
                     } else if (saveType.equals("同轴")) {
                         binding.ivFill.setVisibility(View.VISIBLE);
@@ -1464,7 +977,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                         binding.ivFill.setImageResource(R.drawable.busbortf);
                         binding.bluetooth.setVisibility(View.GONE);
                         //launchApp("com.softwinner.TvdFileManager");
-                        launchApp("com.android.music");
+                        //launchApp("com.android.music");
                         binding.bgIcon.setVisibility(View.GONE);
                         binding.bluetooth.setVisibility(View.GONE);
                     } else if (saveType.equals("last")) {
@@ -1477,29 +990,33 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 break;
             case R.id.fl7:
                 //系统设置
+                switchToOtherChanel("系统设置");
                 openSettings();
-                //launchApp("com.android.settings");
-                //launchApp("com.softwinner.tvdsetting");
+                binding.fl7.requestFocus();
                 break;
             case R.id.fl8:
                 //hdp 频道
                 launchApp(PackageName.hdp);
+                binding.fl8.requestFocus();
                 break;
-            case R.id.fl2:
+            case R.id.fl1:
                 //腾讯视频
-//                handleClick(1, keyCode);
+                switchToOtherChanel("腾讯视频");
                 launchApp(PackageName.qqTv);
+                binding.fl1.requestFocus();
                 break;
             case R.id.ad:
                 if (web.size() > 0) {
+                    switchToOtherChanel(v.getClass().getName());
                     WebRedirection();
                 } else if (web.size() == 0) {
                     Toast.makeText(mContext, R.string.no_browsers, Toast.LENGTH_LONG).show();
                 }
                 break;
-            case R.id.fl_add1:
+            case R.id.fl2:
                 Object obj = v.getTag();
                 if (obj == null || !isClick) {
+                    switchToOtherChanel(v.getClass().getName());
                     lunchHomeAppDialog(obj, id);
                 } else if (obj != null && isClick) {
                     launchApp(obj.toString());
@@ -1508,7 +1025,184 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         }
 
         getSharedPreferences("saveType", MODE_PRIVATE).edit().putString("saveType", saveType).commit();
+    }
 
+    @Override
+    public void onServiceConnected(ComponentName name, IBinder service) {
+        if (SerialPortReceivehandler == null) {
+            SerialPortReceivehandler = new Handler() {
+                @Override
+                public void handleMessage(Message msg) {
+                    super.handleMessage(msg);
+                }
+            };
+        }
+        MyService.Binder binder = (MyService.Binder) service;
+        myService = binder.getService();
+
+
+        myService.setActionCallback(new MyService.Callback() {
+            @Override
+            public void onDataChange(String data) {
+                mSerialData = data;
+                Log.i("Callback.onDataChange", "data=" + data);
+                if (null != SerialPortReceivehandler) {
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            super.run();
+                            try {
+                                sleep(200);
+                                SerialPortReceivehandler.post(runnable);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }.start();
+                } else {
+                    Log.e("tag", "SerialPortReceivehandler=null");
+                }
+            }
+        });
+    }
+
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            isThelast = false;
+            if (mSerialData.equals("0201050000020000010B7E") || mSerialData.equals("0101050000020000010A7E")) {
+                pauseMusic();
+                //同轴
+                saveType = "同轴";
+
+                binding.fl12.requestFocus();
+
+                binding.bgIv111.setImageResource(R.drawable.xaa);
+                binding.bgIv113.setImageResource(R.drawable.xac);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
+                binding.bgIv112.setImageResource(R.drawable.xsa);
+                binding.bgIv114.setImageResource(R.drawable.xad);
+                binding.bgIv115.setImageResource(R.drawable.xae);
+                binding.bgIcon.setVisibility(View.GONE);
+                binding.bgIv5.setImageResource(R.drawable.tz);
+                //} else
+                binding.ivFill.setImageResource(R.drawable.btz);
+
+            } else if (mSerialData.equals("0201050000020004000E7E") || mSerialData.equals("0101050000020004000D7E")) {
+                //蓝牙
+                pauseMusic();
+                saveType = "蓝牙";
+
+                binding.fl11.requestFocus();
+                binding.bgIv111.setImageResource(R.drawable.xsb);
+                binding.bgIv113.setImageResource(R.drawable.xac);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
+                binding.bgIv112.setImageResource(R.drawable.xab);
+                binding.bgIv114.setImageResource(R.drawable.xad);
+                binding.bgIv115.setImageResource(R.drawable.xae);
+                binding.bgIv5.setImageResource(R.drawable.ly);
+                binding.bgIcon.setVisibility(View.GONE);
+                binding.ivFill.setImageResource(R.drawable.bly);
+                if (blutoothConnected)
+                    isFive = true;
+
+            } else if (mSerialData.equals("0201050000020080008A7E") || mSerialData.equals("010105000002008000897E")) {
+                pauseMusic();
+                //模拟
+                saveType = "模拟";
+
+                binding.bgIv111.setImageResource(R.drawable.xaa);
+                binding.bgIv113.setImageResource(R.drawable.xac);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
+                binding.bgIv112.setImageResource(R.drawable.xab);
+                binding.bgIv114.setImageResource(R.drawable.xsc);
+                binding.bgIv115.setImageResource(R.drawable.xae);
+                binding.bgIcon.setVisibility(View.GONE);
+
+                binding.bgIv5.setImageResource(R.drawable.mn);
+                binding.fl14.requestFocus();
+                binding.ivFill.setImageResource(R.drawable.bmn);
+                binding.bluetooth.setVisibility(View.INVISIBLE);
+            } else if (mSerialData.equals("0201050000020000020C7E") || mSerialData.equals("0101050000020000020B7E")) {
+                pauseMusic();
+                //光纤
+                saveType = "光纤";
+
+                binding.bgIv111.setImageResource(R.drawable.xaa);
+                binding.bgIv113.setImageResource(R.drawable.xsd);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
+                binding.bgIv112.setImageResource(R.drawable.xab);
+                binding.bgIv114.setImageResource(R.drawable.xad);
+                binding.bgIv115.setImageResource(R.drawable.xae);
+                binding.bgIcon.setVisibility(View.GONE);
+
+                binding.bgIv5.setImageResource(R.drawable.opt);
+                binding.fl13.requestFocus();
+                //}else
+                binding.ivFill.setImageResource(R.drawable.bopt);
+                binding.bluetooth.setVisibility(View.INVISIBLE);
+
+            } else if (mSerialData.equals("0201050000020000000A7E") || mSerialData.equals("010105000002000000097E")) {
+                pauseMusic();
+                //最后的app  I2S 通道
+                saveType = "last";
+                isThelast = true;
+                //binding.fl16.requestFocus();
+                binding.bgIv111.setImageResource(R.drawable.xaa);
+                binding.bgIv113.setImageResource(R.drawable.xac);
+                //binding.bgIv116.setImageResource(R.drawable.blue6);
+                binding.bgIv112.setImageResource(R.drawable.xab);
+                binding.bgIv114.setImageResource(R.drawable.xad);
+                binding.bgIv115.setImageResource(R.drawable.xae);
+                //binding.fl15.requestFocus();
+                if (null != lastoneApp && !"".equals(lastoneApp)) {
+                    launchApp(lastoneApp);
+                }
+                binding.bluetooth.setVisibility(View.INVISIBLE);
+
+            } else if (mSerialData.equals("020105000002000800127E") || mSerialData.equals("010105000002000800117E")) {
+                pauseMusic();
+                //usb/TF
+                saveType = "player";
+                binding.bgIv111.setImageResource(R.drawable.xaa);
+                binding.bgIv113.setImageResource(R.drawable.xac);
+                //binding.bgIv116.setImageResource(R.drawable.nnn);
+                binding.bgIv112.setImageResource(R.drawable.xab);
+                binding.bgIv114.setImageResource(R.drawable.xad);
+                binding.bgIv115.setImageResource(R.drawable.xse);
+                binding.fl15.requestFocus();
+                binding.bluetooth.setVisibility(View.INVISIBLE);
+                launchApp("com.android.music");
+
+            } else if (mSerialData.equals("")) {
+                //mic A开
+                binding.micA.setImageResource(R.drawable.ano);
+            } else if (mSerialData.equals("")) {
+                //mic A关
+                binding.micA.setVisibility(View.GONE);
+            } else if (mSerialData.equals("")) {
+                //mic B开
+                binding.micB.setImageResource(R.drawable.bno);
+            } else if (mSerialData.equals("")) {
+                //mic B关
+                binding.micB.setVisibility(View.GONE);
+            }
+
+            if (mSerialData.equals("0201050000020004000E7E") || mSerialData.equals("0101050000020004000D7E")) {
+                if (blutoothConnected) {
+                    binding.bluetooth.setVisibility(View.VISIBLE);
+                    binding.bluetooth.setImageResource(R.drawable.bluetoothhave);
+                }
+            }
+
+            getSharedPreferences("saveType", MODE_PRIVATE).edit().putString("saveType", saveType).commit();
+        }
+    };
+
+
+    @Override
+    public void onServiceDisconnected(ComponentName name) {
+        Log.e("tag", "后台服务已断开！");
     }
 
     private void openSettings() {
@@ -1667,126 +1361,19 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         }
     }
 
-    //把拼音的省份改成中文
-    private void ModifyTheLanguageOfTheRegion(String province) {
-        if (province.equals("Guangdong")) {
-            region = "广东省";
-        } else if (province.equals("Guangxi")) {
-            region = "广西壮族自治区";
-        } else if (province.equals("Hainan")) {
-            region = "海南省";
-        } else if (province.equals("Beijing")) {
-            region = "北京市";
-        } else if (province.equals("Tianjin")) {
-            region = "天津市";
-        } else if (province.equals("Shanghai")) {
-            region = "上海市";
-        } else if (province.equals("Chongqing")) {
-            region = "重庆市";
-        } else if (province.equals("Hebei")) {
-            region = "河北省";
-        } else if (province.equals("Henan")) {
-            region = "河南省";
-        } else if (province.equals("Yunan")) {
-            region = "云南省";
-        } else if (province.equals("Liaoning")) {
-            region = "辽宁省";
-        } else if (province.equals("Heilongjiang")) {
-            region = "黑龙江省";
-        } else if (province.equals("Hunan")) {
-            region = "湖南省";
-        } else if (province.equals("Anhui")) {
-            region = "安徽省";
-        } else if (province.equals("Shandong")) {
-            region = "山东省";
-        } else if (province.equals("Xinjiang")) {
-            region = "新疆维吾尔族自治区";
-        } else if (province.equals("Jiangsu")) {
-            region = "江苏省";
-        } else if (province.equals("Zhejiang")) {
-            region = "浙江省";
-        } else if (province.equals("Jiangxi")) {
-            region = "江西省";
-        } else if (province.equals("Hubei")) {
-            region = "湖北省";
-        } else if (province.equals("Gansu")) {
-            region = "甘肃省";
-        } else if (province.equals("Shanxi")) {
-            region = "山西省";
-        } else if (province.equals("Shanxi")) {
-            region = "陕西省";
-        } else if (province.equals("Neimenggu")) {
-            region = "内蒙古蒙古族自治区";
-        } else if (province.equals("Jilin")) {
-            region = "吉林省";
-        } else if (province.equals("Fujian")) {
-            region = "福建省";
-        } else if (province.equals("Guizhou")) {
-            region = "贵州省";
-        } else if (province.equals("Qinghai")) {
-            region = "青海省";
-        } else if (province.equals("Sichuan")) {
-            region = "四川省";
-        } else if (province.equals("Xizang")) {
-            region = "西藏藏族自治区";
-        } else if (province.equals("Ningxia")) {
-            region = "宁夏回族自治区";
-        } else if (province.equals("Taiwan")) {
-            region = "台湾省";
-        } else if (province.equals("Hong Kong")) {
-            region = "香港特别行政区";
-        } else if (province.equals("Macao")) {
-            region = "澳门特别行政区";
-        }
-    }
 
     private void handleViewKeyDown(View v) {
         int id = v.getId();
         switch (id) {
-//            case R.id.fl3:
-//            case R.id.fl4:
             case R.id.fl6:
             case R.id.ad:
-            case R.id.history_fl:
-//                appHandler.changePageType(HOME_BOTTOM_TYPE);
-//                bottomAppDialog = BottomAppDialog.showBottomAppDialog(MainActivity.this);
-//                bottomAppDialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-//                    @Override
-//                    public void onDismiss(DialogInterface dialog) {
-//                        appHandler.resetPageType();
-//                        bottomAppDialog = null;
-//                    }
-//                });
-//                break;
+            case R.id.fl4:
         }
     }
 
     public void lunchHomeAppDialog(Object obj, int id) {
-        Log.d("MainActivity", "lunchHomeAppDialog -- id:" + id);
         homeAppDialog = HomeAppDialog.showHomeAppDialog(this,
                 obj != null ? obj.toString() : null, id);
-    }
-
-    @Override
-    public boolean onKey(View v, int keyCode, KeyEvent event) {
-        Log.e("key", "onKey>>>>>event=" + keyCode);
-        if (event.getAction() == KeyEvent.ACTION_UP) {
-            return false;
-        }
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_MENU:
-                //Toast.makeText(mContext, "menu1", Toast.LENGTH_SHORT).show();
-                handleViewKey(v, keyCode, false);
-                break;
-            case KeyEvent.KEYCODE_DPAD_DOWN:
-                //handleViewKeyDown(v);
-                break;
-            case KeyEvent.KEYCODE_HOME:
-            case KeyEvent.KEYCODE_BACK:
-                binding.ivFill.setVisibility(View.GONE);
-                break;
-        }
-        return super.onKeyDown(keyCode, event);
     }
 
     @Override
@@ -1807,100 +1394,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     }
 
 
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        Log.d("key", "onKeyDown>>>>>event="+keyCode);
-        //if (keyCode == KeyEvent.KEYCODE_BACK) {
-            //binding.ivFill.setVisibility(View.GONE);
-        //    inputNumber("BACK");
-        //    return true;
-        //}
-        if (keyCode == KeyEvent.KEYCODE_F3) {
-            binding.bgIv5.setImageResource(R.drawable.gq1);
-            binding.bgIv5.setVisibility(View.VISIBLE);
-            binding.bgIv5.bringToFront();
-            //return true;
-        }
-        if (keyCode == KeyEvent.KEYCODE_F2) {
-            binding.bgIv5.setImageResource(R.drawable.mn1);
-            binding.bgIv5.setVisibility(View.VISIBLE);
-            //return true;
-        }
-        if (keyCode == KeyEvent.KEYCODE_F1) {
-            binding.bgIv5.setImageResource(R.drawable.ly1);
-            binding.bgIv5.setVisibility(View.VISIBLE);
-            //return true;
-        }
-        if (keyCode == KeyEvent.KEYCODE_F4) {
-            binding.bgIv5.setImageResource(R.drawable.tz1);
-            binding.bgIv5.setVisibility(View.VISIBLE);
-            //return true;
-        }
-
-        switch (keyCode) {
-            case KeyEvent.KEYCODE_0:// 0
-                inputNumber("0");
-                break;
-            case KeyEvent.KEYCODE_1:// 1
-                inputNumber("1");
-                break;
-            case KeyEvent.KEYCODE_2:// 2
-                inputNumber("2");
-                break;
-            case KeyEvent.KEYCODE_3:// 3
-                inputNumber("3");
-                break;
-            case KeyEvent.KEYCODE_4:// 4
-                inputNumber("4");
-                break;
-            case KeyEvent.KEYCODE_5:// 5
-                inputNumber("5");
-                break;
-            case KeyEvent.KEYCODE_6:// 6
-                inputNumber("6");
-                break;
-            case KeyEvent.KEYCODE_7:// 7
-                inputNumber("7");
-                break;
-            case KeyEvent.KEYCODE_8:// 8
-                inputNumber("8");
-                break;
-            case KeyEvent.KEYCODE_9:// 9
-                inputNumber("9");
-                break;
-            case KeyEvent.KEYCODE_F1: //F1
-                //inputNumber("F1");
-                break;
-            case KeyEvent.KEYCODE_F2:    //F2
-                //inputNumber("F2");
-                break;
-            case KeyEvent.KEYCODE_F3:     //F3
-                //inputNumber("F3");
-                break;
-            case KeyEvent.KEYCODE_F11:    //天普遥控器的设置键
-                //openSettings();
-                break;
-            case KeyEvent.KEYCODE_G:      //天普遥控器的USB键
-                //launchApp("com.android.music");
-                break;
-            case KeyEvent.KEYCODE_DPAD_UP:
-                break;
-        }
-        return super.onKeyDown(keyCode, event);
-
-    }
-
-    private static final String StartDragonTest = "1379";//测试
-    private static final String StartDragonAging = "2379";//老化
-    private static final String versionInfo = "3379";//版本信息
-
-    //private static final String zhibo = "F1";  //直播
-    //private static final String dianbo = "F2";  //点播
-    //private static final String app = "F3";    //我的应用
-
-    long oldTime = 0;
-    String num = "";
-
     private void inputNumber(String i) {
         long inputTime = System.currentTimeMillis();
         if (inputTime - oldTime < 1000) {
@@ -1915,8 +1408,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
             nba = 0;
         }
         oldTime = inputTime;
-        //Toast.makeText(mContext, num, Toast.LENGTH_SHORT).show();
-
         switch (nba) {
             case 8:
                 oldTime = 0;
@@ -1967,63 +1458,12 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                     deviceName = "其它";
                 }
                 new AlertDialog.Builder(mContext)
-//                        .setTitle("版本信息")
-//                        .setMessage(appName + "-" + BuildConfig.VERSION_NAME +
-//                                "\n服务范围：" + (host.startsWith("http://192.168.") ? "内网" : "外网") +
-//                                "\n品牌商：" + deviceName)
                         .setTitle("Phiên bản thông tin")
                         .setMessage(appName + "-" + BuildConfig.VERSION_NAME +
                                 "\nPhạm vi dịch vụ：" + (host.startsWith("http://192.168.") ? "Mạng nội bộ" : "Mạng bên ngoài") +
                                 "\nThương hiệu：" + deviceName)
                         .show();
                 break;
-
-//            case zhibo:
-//                num = "";
-//                oldTime = 0;
-//                if (AppManager.isInstallApp(mContext,live)) {
-//                    launchApp(live);
-//                }else {
-//                    Toast.makeText(mContext,R.string.no_app,Toast.LENGTH_LONG).show();
-//                }
-//                break;
-//
-//            case dianbo:
-//                num = "";
-//                oldTime = 0;
-//                if (AppManager.isInstallApp(mContext,vod)) {
-//                    launchApp(vod);
-//                }else {
-//                    Toast.makeText(mContext,R.string.no_app,Toast.LENGTH_LONG).show();
-//                }
-//                break;
-
-            //case app:
-            //    num = "";
-            //    oldTime = 0;
-            //    AppsActivity.lunchAppsActivity(this, MY_APP_TYPE);
-             //   break;
-//            case "6666":
-//                num = "";
-//                oldTime = 0;
-//                String cache = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_cache", null);
-//                View view = LayoutInflater.from(mContext).inflate(R.layout.test_cache, null);
-//                ((TextView) view.findViewById(R.id.tv_content)).setText("" + cache);
-//                new AlertDialog.Builder(mContext)
-//                        .setTitle("cache")
-//                        .setView(view)
-//                        .show();
-//                break;
-//            case "7777":
-//                num = "";
-//                oldTime = 0;
-//                View view1 = LayoutInflater.from(mContext).inflate(R.layout.test_cache, null);
-//                ((TextView) view1.findViewById(R.id.tv_content)).setText("" + cacheImg);
-//                new AlertDialog.Builder(mContext)
-//                        .setTitle("cacheImg")
-//                        .setView(view1)
-//                        .show();
-//                break;
             case "8888":
                 num = "";
                 oldTime = 0;
@@ -2094,11 +1534,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-//                                new AlertDialog.Builder(MainActivity.this)
-//                                        .setTitle(R.string.hint)
-//                                        .setMessage(checkMacBean.getMsg()+"\nMAC: "+Utils.getDevID().toUpperCase())
-//                                        .setCancelable(false)
-//                                        .show();
                                 showMACDialog(Utils.getDevID().toUpperCase());
                             }
                         });
@@ -2568,23 +2003,7 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                             fos.flush();
                             fos.close();
                             inputStream.close();
-//                            Log.d(TAG, "下载完成！");
-                            //静默安装应用 todo
-//                            final int result = AppManager.installSilent(filePath);
-//                            Log.e(TAG, "install apk result: " + result);
-//                            runOnUiThread(new Runnable() {
-//                                @Override
-//                                public void run() {
-//                                    flItems[index].setEnabled(true);
-//                                    if (result == 0) {
-//                                        //安装成功
-//                                        pbItems[index].setVisibility(View.GONE);
-//                                        tvItems[index].setVisibility(View.GONE);
-//                                    } else {
-//                                        tvItems[index].setText("安装失败");
-//                                    }
-//                                }
-//                            });
+
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
@@ -2726,192 +2145,6 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
     }
 
 
-    @Override
-    public void onServiceConnected(ComponentName name, IBinder service) {
-        SerialService.Binder binder = (SerialService.Binder) service;
-        SerialService serialService = binder.getService();
-        serialService.setCallback(new SerialService.Callback() {
-            @Override
-            public void onDataChange(String data) {
-                lo = data;
-                Log.e("Tag", "lo=" + lo);
-                if (null != SerialPortReceivehandler) {
-                    new Thread() {
-                        @Override
-                        public void run() {
-                            super.run();
-                            try {
-                                sleep(200);
-                                SerialPortReceivehandler.post(runnable);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }.start();
-                } else {
-                    Log.e("tag", "SerialPortReceivehandler=null");
-                }
-            }
-        });
-    }
-
-    Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            //开线程更新UI 在这里处理Ui 操作
-            //binding.ivFill.setVisibility(View.GONE);
-            isThelast = false;
-            //pauseMusic();
-            if (lo.equals("0201050000020000010B7E") || lo.equals("0101050000020000010A7E")) {
-                pauseMusic();
-                //同轴
-                saveType = "同轴";
-                bluetoothimg = false;
-                //if(binding.ivFill.getVisibility() == View.GONE)
-                /**///{
-                binding.fl12.requestFocus();
-
-                binding.bgIv111.setImageResource(R.drawable.xaa);
-                binding.bgIv113.setImageResource(R.drawable.xac);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
-                binding.bgIv112.setImageResource(R.drawable.xsa);
-                binding.bgIv114.setImageResource(R.drawable.xad);
-                binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIcon.setVisibility(View.GONE);
-                binding.bgIv5.setImageResource(R.drawable.tz);
-                //} else
-                binding.ivFill.setImageResource(R.drawable.btz);
-
-            } else if (lo.equals("0201050000020004000E7E") || lo.equals("0101050000020004000D7E")) {
-                //蓝牙
-                pauseMusic();
-                saveType = "蓝牙";
-                bluetoothimg = true;
-                //if(binding.ivFill.getVisibility() == View.GONE)
-                //{
-                binding.fl11.requestFocus();
-                binding.bgIv111.setImageResource(R.drawable.xsb);
-                binding.bgIv113.setImageResource(R.drawable.xac);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
-                binding.bgIv112.setImageResource(R.drawable.xab);
-                binding.bgIv114.setImageResource(R.drawable.xad);
-                binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIv5.setImageResource(R.drawable.ly);
-                binding.bgIcon.setVisibility(View.GONE);
-                //}else
-                binding.ivFill.setImageResource(R.drawable.bly);
-
-                isFive = true;
-
-            } else if (lo.equals("0201050000020080008A7E") || lo.equals("010105000002008000897E")) {
-                pauseMusic();
-                //模拟
-                saveType = "模拟";
-                bluetoothimg = false;
-                //if(binding.ivFill.getVisibility() == View.GONE)
-                //{
-                binding.bgIv111.setImageResource(R.drawable.xaa);
-                binding.bgIv113.setImageResource(R.drawable.xac);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
-                binding.bgIv112.setImageResource(R.drawable.xab);
-                binding.bgIv114.setImageResource(R.drawable.xsc);
-                binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIcon.setVisibility(View.GONE);
-
-                binding.bgIv5.setImageResource(R.drawable.mn);
-                binding.fl14.requestFocus();
-                //}
-                //else
-                binding.ivFill.setImageResource(R.drawable.bmn);
-            } else if (lo.equals("0201050000020000020C7E") || lo.equals("0101050000020000020B7E")) {
-                pauseMusic();
-                //光纤
-                saveType = "光纤";
-                bluetoothimg = false;
-                //if(binding.ivFill.getVisibility() == View.GONE)
-                //{
-                binding.bgIv111.setImageResource(R.drawable.xaa);
-                binding.bgIv113.setImageResource(R.drawable.xsd);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
-                binding.bgIv112.setImageResource(R.drawable.xab);
-                binding.bgIv114.setImageResource(R.drawable.xad);
-                binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIcon.setVisibility(View.GONE);
-
-                binding.bgIv5.setImageResource(R.drawable.opt);
-                binding.fl13.requestFocus();
-                //}else
-                binding.ivFill.setImageResource(R.drawable.bopt);
-
-
-            } else if (lo.equals("0201050000020000000A7E") || lo.equals("010105000002000000097E")) {
-                pauseMusic();
-
-                //最后的app
-                saveType = "last";
-                bluetoothimg = false;
-                isThelast = true;
-
-                binding.fl16.requestFocus();
-                binding.bgIv111.setImageResource(R.drawable.xaa);
-                binding.bgIv113.setImageResource(R.drawable.xac);
-                binding.bgIv116.setImageResource(R.drawable.blue6);
-                binding.bgIv112.setImageResource(R.drawable.xab);
-                binding.bgIv114.setImageResource(R.drawable.xad);
-                binding.bgIv115.setImageResource(R.drawable.xae);
-                Log.e("tag", "isAudioKey=" + isAudioKey);
-
-                if (isAudioKey) {
-                    if (null != lastoneApp && !"".equals(lastoneApp)) {
-                        //launchApp(lastoneApp);
-                    }
-                }
-
-                isAudioKey = true;
-            } else if (lo.equals("020105000002000800127E") || lo.equals("010105000002000800117E")) {
-                pauseMusic();
-                //usb
-                saveType = "player";
-                bluetoothimg = false;
-
-                binding.bgIv111.setImageResource(R.drawable.xaa);
-                binding.bgIv113.setImageResource(R.drawable.xac);
-                binding.bgIv116.setImageResource(R.drawable.nnn);
-                binding.bgIv112.setImageResource(R.drawable.xab);
-                binding.bgIv114.setImageResource(R.drawable.xad);
-                binding.bgIv115.setImageResource(R.drawable.xse);
-                launchApp("com.android.music");
-            } else if (lo.equals("")) {
-                //mic A开
-                binding.micA.setImageResource(R.drawable.ano);
-            } else if (lo.equals("")) {
-                //mic A关
-                binding.micA.setVisibility(View.GONE);
-            } else if (lo.equals("")) {
-                //mic B开
-                binding.micB.setImageResource(R.drawable.bno);
-            } else if (lo.equals("")) {
-                //mic B关
-                binding.micB.setVisibility(View.GONE);
-            }
-
-            if (bluetoothimg) {
-                binding.bluetooth.setVisibility(View.VISIBLE);
-                binding.bluetooth.setImageResource(R.drawable.bluetoothno);
-            } else {
-                binding.bluetooth.setVisibility(View.GONE);
-            }
-            getSharedPreferences("saveType", MODE_PRIVATE).edit().putString("saveType", saveType).commit();
-        }
-    };
-
-
-    @Override
-    public void onServiceDisconnected(ComponentName name) {
-        Log.e("tag", "后台服务已断开！");
-    }
-
-
     private void getRecommendVideo() {
 
         if (cid == 19) {
@@ -2953,8 +2186,8 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                                     e.printStackTrace();
                                 }
 
-//                                DownloadManager.getInstance().removeFile((DownloadManager.getInstance().getDownloadCacheDir(MainActivity.this)));
-//                                DownloadManager.getInstance().with(MainActivity.this).download(uri);
+                                // DownloadManager.getInstance().removeFile((DownloadManager.getInstance().getDownloadCacheDir(MainActivity.this)));
+                                // DownloadManager.getInstance().with(MainActivity.this).download(uri);
                                 getSharedPreferences("video_path", MODE_PRIVATE).edit().putString("videoPath", uri).commit();
                             }
                         }.start();
@@ -2990,6 +2223,96 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                         0);
             }
         }
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (!Settings.canDrawOverlays(MainActivity.this)) {
+                Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse("package:" + getPackageName()));
+                //startActivityForResult(intent, 10);
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 10) {
+            if (Build.VERSION.SDK_INT >= 23) {
+                if (!Settings.canDrawOverlays(this)) {
+                    // SYSTEM_ALERT_WINDOW permission not granted...
+                    //Toast.makeText(MainActivity.this,"not granted",Toast.LENGTH_SHORT);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onGlobalFocusChanged(View oldFocus, View newFocus) {
+        if (newFocus == null)
+            return;
+
+        int focusVId = newFocus.getId();
+
+        if (focusVId == R.id.fl7) {
+            binding.mac.setVisibility(View.VISIBLE);
+        } else {
+            ;//binding.mac.setVisibility(View.INVISIBLE);
+        }
+
+        OldView = newFocus;
+        switch (focusVId) {
+            case R.id.ad:
+                selEffectBridge.setUpRectResource(R.drawable.home_sel_btn0);
+                selEffectBridge.setVisibleWidget(false);
+                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.0f);
+                newFocus.bringToFront();
+                break;
+            case R.id.fl4:
+            case R.id.fl3:
+            case R.id.fl6:
+            case R.id.fl7:
+            case R.id.fl8:
+                selEffectBridge.setUpRectResource(R.drawable.home_sel_btn0);
+                selEffectBridge.setVisibleWidget(false);
+                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.1f);
+                newFocus.bringToFront();
+                break;
+            case R.id.fl5: //中央
+                selEffectBridge.setUpRectResource(R.drawable.but);
+                selEffectBridge.setVisibleWidget(false);
+                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.0f);
+                newFocus.bringToFront();
+                break;
+
+            case R.id.fl2://最左边
+            case R.id.fl0:
+            case R.id.fl1:
+                selEffectBridge.setUpRectResource(R.drawable.bgmbgm);
+                selEffectBridge.setVisibleWidget(false);
+                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.1f);
+                newFocus.bringToFront();
+                break;
+
+            case R.id.fl11: //中央下面的第一按钮
+                selEffectBridge.setUpRectResource(R.drawable.left);
+                selEffectBridge.setVisibleWidget(false);
+                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.0f);
+                newFocus.bringToFront();
+                break;
+            case R.id.fl14:
+            case R.id.fl15:
+                selEffectBridge.setUpRectResource(R.drawable.home_sel_btn1);
+                selEffectBridge.setVisibleWidget(false);
+                binding.mainUpView.setFocusView(newFocus, oldFocus, 1.0f);
+                newFocus.bringToFront();
+                break;
+            default:
+                break;// throw new IllegalStateException("Unexpected value: " + focusVId);
+        }
+
+    }
+
+    public void setFocuseEffect(View v) {
+        onGlobalFocusChanged(null, v);
     }
 
     /**
@@ -3002,98 +2325,35 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         public void onReceive(Context context, Intent intent) {
             final String pull_from = "52129";
             Bundle bundle = intent.getExtras();
-            if (bundle == null) return;
-            String _action = bundle.getString("_Action");
-            if (_action == null) return;
-            Log.d("key", "123>>>>>="+bundle.getInt("keyCode"));
 
-            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F3) {
-                binding.bgIv5.setImageResource(R.drawable.gq1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                binding.bgIv5.bringToFront();
-                //return true;
-            }
-            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F2) {
-                binding.bgIv5.setImageResource(R.drawable.mn1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                //return true;
-            }
-            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F4) {
-                binding.bgIv5.setImageResource(R.drawable.tz1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                //return true;
-            }
-            if(bundle.getInt("keyCode") == KeyEvent.KEYCODE_F1) {
-                binding.bgIv5.setImageResource(R.drawable.ly1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                //return true;
-            }
+            if (bundle == null) return;
+
+            String _action = bundle.getString("_Action");
+
+
+            if (_action == null) return;
 
             if ((_action.contains("首页")) || (_action.contains("桌面")) || (_action.contains("主页"))) {
 
                 binding.ivFill.setVisibility(View.GONE);
-                //MainActivity.this.finish();
-                //binding.fl1.requestFocus();
-                //launchApp("com.zhuchao.android.tianpuhw");
-                //Intent i = new Intent();
-                //i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //ComponentName cn = new ComponentName("com.zhuchao.android.tianpuhw", "com.zhuchao.android.tianpuhw.activities.MainActivity");
-                //i.setComponent(cn);
-                //startActivity(i);
                 View rootview = MainActivity.this.getWindow().getDecorView();
-                if (rootview != null) {
-                    View view = rootview.findFocus();
-                    Log.d("---------------->1", "view.getId() = " + view.toString());
-                    if (view != null) {
-                        //if (view.getId() == R.id.main_rl)
-                        //{
-                        //binding.fl1.requestFocus();
-                        //Log.d("---------------->2", "view.getId() = " + view.toString());
-                        //}
-                        //if (view.getId() == R.id.fl1)
-                        if ((mIsStartFirst == 0) && (view.getId() == R.id.fl1)) {
-                            binding.fl2.requestFocus();
-                            //binding.fl1.getParent().requestFocus();
-                            Log.d("---------------->3", "view.getId() = " + view.toString());
-                            //binding.fl1.requestFocus();
-                            mIsStartFirst = -1;
-                        }
-
-                        if (mIsStartFirst == 1) {
-                            binding.fl1.requestFocus();
-                            mIsStartFirst = -1;
-                        }
-
-                        if (!(view instanceof FrameLayout)) {
-                            binding.fl1.requestFocus();
-                            Log.d("---------------->4", "view.getId() = " + view.toString());
-                        }
-                    } else {
-                        binding.fl1.requestFocus();
-
-                        Log.d(TAG, "返回桌面 requestFocus1");
-                    }
-                } else {
-                    binding.fl1.requestFocus();
-                    Log.d(TAG, "返回桌面 requestFocus2");
-                }
             } else if (_action.contains("蓝牙")) {
                 pauseMusic();
                 onClick(binding.fl11);
-                //launchApp("com.zhuchao.android.tianpuhw");
+                //launchApp("com.h3launcher");
             } else if ((_action.contains("同轴")) || (_action.contains("同舟"))) {
                 pauseMusic();
                 onClick(binding.fl12);
-                //launchApp("com.zhuchao.android.tianpuhw");
+                //launchApp("com.h3launcher");
             } else if (_action.contains("光纤")) {
                 pauseMusic();
                 onClick(binding.fl13);
-                //launchApp("com.zhuchao.android.tianpuhw");
+                //launchApp("com.h3launcher");
             } else if ((_action.contains("输入")) || (_action.contains("Line in")) || (_action.contains("模拟"))) {
                 pauseMusic();
                 onClick(binding.fl14);
                 //Intent i = new Intent();
-                //launchApp("com.zhuchao.android.tianpuhw");
+                //launchApp("com.h3launcher");
             } else if (_action.contains("USB") || _action.contains("U盘") || _action.contains("TF卡") || _action.contains("优盘") || _action.contains("卡")) {
                 onClick(binding.fl15);
                 Intent freshIntent = new Intent();
@@ -3114,31 +2374,55 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
             } else if (_action.contains("频道")) {
                 binding.ivFill.setVisibility(View.GONE);
                 onClick(binding.fl8);
-                //binding.fl8.requestFocus();
-                //Intent i = new Intent();
-                //i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                //ComponentName cn = new ComponentName("kantv.clean", "kantv.clean.activity.MainActivity");
-                //i.setComponent(cn);
-                //startActivity(i);
             } else if ((_action.contains("全民K歌")) || (_action.contains("我要唱歌")) || (_action.contains("我想唱歌")) || (_action.contains("K歌")) || (_action.contains("KTV"))) {
-                //if (!isTopActivity("com.tencent.karaoketv"))
-                mIsStartFirst = 1;
-                handleViewKey(binding.fl1, -1, true);
+                handleViewKey(binding.fl0, -1, true);
             } else if ((_action.contains("腾讯视频")) || (_action.contains("云视听"))) {
-                handleViewKey(binding.fl2, -1, true);
+                handleViewKey(binding.fl1, -1, true);
             } else if (_action.contains("应用") || _action.contains("程序")) {
                 AppsActivity.lunchAppsActivity(MainActivity.this, MY_APP_TYPE);
             } else if (_action.contains("最近")) {
                 AppsActivity.lunchAppsActivity(MainActivity.this, RECENT_TYPE);
-
             } else if ((_action != null) && (_action.equals("music") || _action.equals("ktv"))) {
-                //isAudioKey = false;
-                //createServiceClick(LastAppOpen);
-                //createServiceClick(LastAppClose);
             }
         }
     }
 
+    Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            // TODO Auto-generated method stub
+            binding.bgIv5.setVisibility(View.VISIBLE);
+            binding.bgIv5.setImageResource(R.drawable.battery_warnning);
+            super.handleMessage(msg);
+        }
+    };
+    private final Timer timer = new Timer();
+    private TimerTask task = new TimerTask() {
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            Message message = new Message();
+            message.what = 1;
+            handler.sendMessage(message);
+        }
+    };
+
+    private void playMusic(final int resID) {
+        new Thread() {
+            @Override
+            public void run() {
+                super.run();
+                try {
+                    MediaPlayer mMediaPlayer;
+                    mMediaPlayer = MediaPlayer.create(MainActivity.this, resID);
+                    mMediaPlayer.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
+
+    }
 
     class HomeWatcherReceiver extends BroadcastReceiver {
 
@@ -3148,11 +2432,13 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
         private static final String SYSTEM_DIALOG_REASON_HOME_KEY = "homekey";
         private static final String SYSTEM_DIALOG_REASON_LOCK = "lock";
         private static final String SYSTEM_DIALOG_REASON_ASSIST = "assist";
+        private static final String ACTION_BATTERY_CHARGE = "BATTERY_CHARGE";
+        private static final String ACTION_BATTERY_INFO = "BATTERY_INFO";
 
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            Log.i(LOG_TAG, "onReceive: action: " + action);
+            //Log.i(LOG_TAG, "onReceive: action: " + action);
             if (action.equals(Intent.ACTION_CLOSE_SYSTEM_DIALOGS)) {
                 // android.intent.action.CLOSE_SYSTEM_DIALOGS
                 String reason = intent.getStringExtra(SYSTEM_DIALOG_REASON_KEY);
@@ -3162,10 +2448,9 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                 if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(reason)) {
                     // 短按Home键
                     Log.i(LOG_TAG, "homekey");
-                    //binding.ivFill.setVisibility(View.GONE);
                     binding.bgIv5.setImageResource(R.drawable.m);
                     binding.bgIv5.setVisibility(View.VISIBLE);
-
+                    //binding.ivFill.setVisibility(View.GONE);
                 } else if (SYSTEM_DIALOG_REASON_RECENT_APPS.equals(reason)) {
                     // 长按Home键 或者 activity切换键
                     Log.i(LOG_TAG, "long press home key or activity switch");
@@ -3179,9 +2464,67 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
                     binding.ivFill.setVisibility(View.GONE);
                     Log.i(LOG_TAG, "assist");
                 }
+            } else if (action.equals(ACTION_BATTERY_CHARGE)) {
+                isCharging = intent.getBooleanExtra("isCharge", false);
+                if (isCharging) {
+                    binding.ivBattery.setImageResource(R.drawable.charge);
+                    //binding.bgIv5.setVisibility(View.INVISIBLE);
+                }
+                else
+                {
+                    binding.bgIv5.setVisibility(View.VISIBLE);
+                }
+            } else if (action.equals(ACTION_BATTERY_INFO) && !isCharging) {
+                int value = intent.getIntExtra("value", -1);
+                binding.ivBattery.setVisibility(View.VISIBLE);
+                binding.bgIv5.setVisibility(View.VISIBLE);
+
+                if ((value < 5))
+                {
+                    binding.bgIv5.setVisibility(View.VISIBLE);
+                    binding.bgIv5.setImageResource(R.drawable.battery_warnning);
+                }
+                if (value < 10)
+                {
+                    binding.ivBattery.setImageResource(R.drawable.lowbattery);
+
+                } else if (value <= 20)
+                    binding.ivBattery.setImageResource(R.drawable.cell1);
+                else if (value <= 60)
+                    binding.ivBattery.setImageResource(R.drawable.cell2);
+                else if (value <= 80)
+                    binding.ivBattery.setImageResource(R.drawable.cell3);
+                else if (value > 80)
+                    binding.ivBattery.setImageResource(R.drawable.cell4);
+
+
+            } else if (action.equals("BLUTOOLTH_STATUS")) {
+                blutoothConnected = intent.getBooleanExtra("BLUTOOLTH_STATUS", false);
+                if (blutoothConnected) {
+                    binding.bluetooth.setVisibility(View.VISIBLE);
+                    binding.bluetooth.setImageResource(R.drawable.bluetoothhave);
+                } else {
+                    binding.bluetooth.setVisibility(View.VISIBLE);
+                    binding.bluetooth.setImageResource(R.drawable.bluetoothno);
+                }
+            } else if (action.equals("COMMAND_DATA")) {
+                openSettings();
             }
         }
     }
+
+    //循环获取电量
+    /*Handler mBatteryHandler = new Handler();
+    Runnable mBatteryRunnable = new Runnable() {
+        @Override
+        public void run() {
+            //Log.e(TAG, "run: battery info");
+            mBatteryHandler.postDelayed(mBatteryRunnable, 10000);//2s
+            StartServiceSendBytes(Constants.BatteryCharge);
+            StartServiceSendBytes(Constants.BatteryInfo);
+        }
+    };
+    */
 
     private boolean isTopActivity(String packageName) {
         ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
@@ -3218,17 +2561,355 @@ public class MainActivity extends AppCompatActivity implements View.OnFocusChang
             if (intent != null) {
                 if (intent.getAction().equals("com.iflytek.xiri.init.start")) {
                     Intent iii;
-                    iii = new Intent(MainActivity.this, MyService.class);
+                    iii = new Intent(MainActivity.this, iflytekService.class);
                     Log.d(TAG, "com.iflytek.xiri.init.start");
                     startService(iii);
                 }
                 if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
                     Intent iii;
-                    iii = new Intent(MainActivity.this, MyService.class);
+                    iii = new Intent(MainActivity.this, iflytekService.class);
                     Log.d(TAG, "android.intent.action.BOOT_COMPLETED");
                     startService(iii);
                 }
             }
+        }
+    }
+
+
+    //把拼音的省份改成中文
+    private void ModifyTheLanguageOfTheRegion(String province) {
+        if (province.equals("Guangdong")) {
+            region = "广东省";
+        } else if (province.equals("Guangxi")) {
+            region = "广西壮族自治区";
+        } else if (province.equals("Hainan")) {
+            region = "海南省";
+        } else if (province.equals("Beijing")) {
+            region = "北京市";
+        } else if (province.equals("Tianjin")) {
+            region = "天津市";
+        } else if (province.equals("Shanghai")) {
+            region = "上海市";
+        } else if (province.equals("Chongqing")) {
+            region = "重庆市";
+        } else if (province.equals("Hebei")) {
+            region = "河北省";
+        } else if (province.equals("Henan")) {
+            region = "河南省";
+        } else if (province.equals("Yunan")) {
+            region = "云南省";
+        } else if (province.equals("Liaoning")) {
+            region = "辽宁省";
+        } else if (province.equals("Heilongjiang")) {
+            region = "黑龙江省";
+        } else if (province.equals("Hunan")) {
+            region = "湖南省";
+        } else if (province.equals("Anhui")) {
+            region = "安徽省";
+        } else if (province.equals("Shandong")) {
+            region = "山东省";
+        } else if (province.equals("Xinjiang")) {
+            region = "新疆维吾尔族自治区";
+        } else if (province.equals("Jiangsu")) {
+            region = "江苏省";
+        } else if (province.equals("Zhejiang")) {
+            region = "浙江省";
+        } else if (province.equals("Jiangxi")) {
+            region = "江西省";
+        } else if (province.equals("Hubei")) {
+            region = "湖北省";
+        } else if (province.equals("Gansu")) {
+            region = "甘肃省";
+        } else if (province.equals("Shanxi")) {
+            region = "山西省";
+        } else if (province.equals("Shanxi")) {
+            region = "陕西省";
+        } else if (province.equals("Neimenggu")) {
+            region = "内蒙古蒙古族自治区";
+        } else if (province.equals("Jilin")) {
+            region = "吉林省";
+        } else if (province.equals("Fujian")) {
+            region = "福建省";
+        } else if (province.equals("Guizhou")) {
+            region = "贵州省";
+        } else if (province.equals("Qinghai")) {
+            region = "青海省";
+        } else if (province.equals("Sichuan")) {
+            region = "四川省";
+        } else if (province.equals("Xizang")) {
+            region = "西藏藏族自治区";
+        } else if (province.equals("Ningxia")) {
+            region = "宁夏回族自治区";
+        } else if (province.equals("Taiwan")) {
+            region = "台湾省";
+        } else if (province.equals("Hong Kong")) {
+            region = "香港特别行政区";
+        } else if (province.equals("Macao")) {
+            region = "澳门特别行政区";
+        }
+    }
+
+
+    private void startVedioPlayerActivity() {
+        Intent intent1 = new Intent();
+        intent1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        ComponentName cn = new ComponentName("com.zhuchao.android.tianpu", "com.zhuchao.android.tianpu.activities.VideoActivity");
+        intent1.setComponent(cn);
+        startActivity(intent1);
+    }
+
+   /*
+   private void kaijiziqi() {
+        Intent intent = getPackageManager().getLaunchIntentForPackage("com.tencent.karaoketv");
+        if (intent != null) {
+            startActivity(intent);
+        } else {
+            Toast.makeText(getApplicationContext(), "未安装全民K歌", Toast.LENGTH_LONG).show();
+        }
+    }
+    */
+
+    //传参数的服务
+    public void StartServiceSendBytes(byte[] bytes) {
+        //Intent intent = new Intent(this, MyService.class);
+        //if (bytes != null) {
+        //    intent.putExtra("serial", bytes);
+        //}
+        //启动servicce服务
+        //startService(intent);
+        if (myService != null)
+            myService.sendCommand(bytes);
+    }
+
+    //不传参数的服务
+    public void StartService() {
+        Intent intent = new Intent(this, MyService.class);
+        //启动servicce服务
+        startService(intent);
+    }
+
+    private void gotTheLastOne() {
+        String lastApp = ShareAdapter.getInstance().getStr("last_app");
+        if (null != lastApp && !"".equals(lastApp)) {
+            for (int i = 0; i < appHandler.saAPP.size(); i++) {
+                if (lastApp.equals(appHandler.saAPP.get(i).getPackageName())) {
+                    App app = appHandler.saAPP.get(i);
+                    Log.e("Tag", "appp=" + app);
+                    //binding.ivLastone.setBackground(app.getIcon());
+                    lastoneApp = app.getPackageName();
+                    lastApps = app.getIcon();
+                }
+            }
+            if (isThelast) {
+                binding.bgIcon.setVisibility(View.VISIBLE);
+                binding.bgIv5.setImageResource(R.drawable.bb2);
+                GlideMgr.loadNormalDrawableImg(mContext, lastApps, binding.bgIcon);
+            }
+        }
+    }
+
+    private void switchToOtherChanel(String ChanelName) {
+        binding.bgIv5.setVisibility(View.VISIBLE);
+        //binding.bgIv5.setImageResource(R.drawable.bb2);
+        Log.i(TAG, "切换通道：" + ChanelName);
+        StartServiceSendBytes(LastChanelApp);
+    }
+
+    /**
+     * 初始化缓存
+     */
+    private void initCache() {
+        String type = getSharedPreferences("saveType", MODE_PRIVATE).getString("saveType", null);
+        Log.i("tag", "type=" + type);
+        if (null != type && !"".equals(type)) {
+            saveType = type;
+            isThelast = false;
+            if (saveType != null) {
+                if (saveType.equals("同轴")) {
+                    //StartServiceSendBytes(CopperShaftLineIn);
+                    StartServiceSendBytes(CopperShaftClose);
+                    binding.bgIv112.setImageResource(R.drawable.xsa);
+                    binding.bgIv5.setImageResource(R.drawable.tz);
+                    binding.bluetooth.setVisibility(View.GONE);
+                    binding.bgIcon.setVisibility(View.GONE);
+                } else if (saveType.equals("蓝牙")) {
+                    //StartServiceSendBytes(BluetoothOpen);
+                    StartServiceSendBytes(BluetoothClose);
+                    binding.bgIv111.setImageResource(R.drawable.xsb);
+                    binding.bgIv5.setImageResource(R.drawable.ly);
+                    binding.bluetooth.setVisibility(View.VISIBLE);
+                    binding.bluetooth.setImageResource(R.drawable.bluetoothno);
+                    binding.bgIcon.setVisibility(View.GONE);
+                } else if (saveType.equals("光纤")) {
+                    //StartServiceSendBytes(OpticalFiberLineIn);
+                    StartServiceSendBytes(OpticalFiberClose);
+                    binding.bgIv113.setImageResource(R.drawable.xsd);
+                    binding.bgIv5.setImageResource(R.drawable.opt);
+                    binding.bluetooth.setVisibility(View.GONE);
+                    binding.bgIcon.setVisibility(View.GONE);
+                } else if (saveType.equals("模拟")) {
+                    //StartServiceSendBytes(SimulationLineIn);
+                    StartServiceSendBytes(SimulationLineInClose);
+                    binding.bgIv114.setImageResource(R.drawable.xsc);
+                    binding.bgIv5.setImageResource(R.drawable.mn);
+                    binding.bluetooth.setVisibility(View.GONE);
+                    binding.bgIcon.setVisibility(View.GONE);
+                } else if (saveType.equals("player")) {
+                    //StartServiceSendBytes(UsbOpen);
+                    StartServiceSendBytes(UsbClose);
+                    binding.bgIv115.setImageResource(R.drawable.xse);
+                    binding.bgIv5.setImageResource(R.drawable.usbortf);
+                    binding.bluetooth.setVisibility(View.GONE);
+                    binding.bgIcon.setVisibility(View.GONE);
+                } else if (saveType.equals("last")) {
+                    //StartServiceSendBytes(LastAppOpen);
+                    //switchToOtherChanel();
+                    //binding.bgIv116.setImageResource(R.drawable.blue6);
+                    binding.bluetooth.setVisibility(View.GONE);
+                    isThelast = true;
+                }
+            } else {
+                //binding.fl16.requestFocus();
+            }
+        }
+
+        //app
+        String cache_app = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_cache", null);
+        if (cache_app != null) {
+            recommendBean = new Gson().fromJson(cache_app, RecommendBean.class);
+            final List<RecommendBean.DataBean> data = recommendBean.getData();
+            if (data != null && data.size() >= ivs.length) {
+                for (int i = 0; i < ivs.length; i++) {
+                    if (!TextUtils.isEmpty(data.get(i).getSyy_app_img())) {
+                        //glide
+                        if (true) {
+                            cacheImg += i + ": " + data.get(i).getSyy_app_img() + "\n";
+                            Glide.with(mContext).load(data.get(i).getSyy_app_img()).into(ivs[i]);
+                            continue;
+                        }
+                        //fresco
+                        FileBinaryResource resource = (FileBinaryResource) Fresco.getImagePipelineFactory().getMainFileCache().getResource(new SimpleCacheKey(data.get(i).getSyy_app_img()));
+                        if (resource != null) {
+                            File file = resource.getFile();
+                            cacheImg += i + ": " + file.getPath() + "\n";
+                            ivs[i].setImageURI(Uri.fromFile(file));
+//                            Glide.with(mContext).load(file).into(ivs[i]);
+                        } else {
+                            cacheImg += i + ": " + data.get(i).getSyy_app_img() + "\n";
+                            ivs[i].setImageURI(Uri.parse(data.get(i).getSyy_app_img()));
+                        }
+
+                    }
+
+                }
+            }
+            //加载指定app主页图片
+            if (data != null && data.size() != 0) {
+                for (int i = 0; i < data.size(); i++) {
+                    String pkn = data.get(i).getSyy_app_packageName();
+                    String img = data.get(i).getSyy_appstatus_img();
+                    if (!"".equals(img) && null != img) {
+                        stImg.put(pkn, img);
+                    }
+                }
+                //显示清理缓存的文字
+//                if (data.size() >= 3 && data.get(2).getSyy_app_name() != null) {
+//                    binding.titleTv8.setVisibility(View.VISIBLE);
+//                    binding.titleTv8.setText(data.get(2).getSyy_app_name());
+//                }
+            }
+        }
+        //跑马灯
+        String cache_marquee = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_marquee_cache", null);
+        if (cache_marquee != null) {
+            recommendmarqueeBean = new Gson().fromJson(cache_marquee, RecommendmarqueeBean.class);
+            final RecommendmarqueeBean.DataBean data = recommendmarqueeBean.getData();
+            if (data != null) {
+                if (!TextUtils.isEmpty(data.getMarquee()))
+                    binding.scrollTv.setText(data.getMarquee());
+            }
+        }
+        //广告
+        String cache_ad = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_ad_cache", null);
+        if (cache_ad != null) {
+            recommend3Bean = new Gson().fromJson(cache_ad, Recommend3Bean.class);
+            final List<Recommend3Bean.DataBean> data = recommend3Bean.getData();
+            if (data != null && data.size() != 0) {
+                binding.adBg.stopAutoPlay();
+                binding.adBg.setData(R.layout.ad_item, data, null);
+                binding.adBg.setmAdapter(new XBanner.XBannerAdapter() {
+                    @Override
+                    public void loadBanner(XBanner banner, Object model, View view, int position) {
+                        String url = data.get(position).getCy_advertisement_imgAddress();
+                        if (!TextUtils.isEmpty(url)) {
+//                            ((SimpleDraweeView) view).setImageURI(Uri.parse(data3.get(position).getCy_advertisement_imgAddress()));
+                            Glide.with(mContext).load(url).into((SimpleDraweeView) view);
+                        }
+                    }
+                });
+                binding.adBg.startAutoPlay();
+            }
+        }
+        //logo
+        String cache_logo = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_logo_cache", null);
+        if (cache_logo != null) {
+            recommendlogoBean = new Gson().fromJson(cache_logo, RecommendlogoBean.class);
+            final RecommendlogoBean.DataBean data = recommendlogoBean.getData();
+            //显示品牌logo
+            if (data != null) {
+                if (!TextUtils.isEmpty(data.getSyy_special_fileOne())) {
+                    Glide.with(mContext).load(data.getSyy_special_fileOne()).into(binding.logoIv);
+                }
+            }
+
+        }
+        setupItemBottomTag();
+        //背景图
+        String cache_bg = getSharedPreferences("my_setting", MODE_PRIVATE).getString("recommend_bg_cache", null);
+        if (cache_bg != null) {
+            recommendbgBean = new Gson().fromJson(cache_bg, RecommendbgBean.class);
+            final List<RecommendbgBean.DatabgBean> data = recommendbgBean.getData();
+            if (data != null && data.size() != 0) {
+                for (int i = 0; i < data.size(); i++) {
+                    if (!TextUtils.isEmpty(data.get(i).getBackgroundImgAddress())) {
+                        Glide.with(mContext).load(data.get(i).getBackgroundImgAddress()).into(binding.ivBg);
+                    }
+                }
+            }
+        }
+
+    }
+
+    @SuppressLint("LongLogTag")
+    private void registerHomeKeyReceiver(Context context) {
+        Log.i(TAG, "registerHomeKeyReceiver");
+        mHomeKeyReceiver = new HomeWatcherReceiver();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_CLOSE_SYSTEM_DIALOGS);
+        filter.addAction(HomeWatcherReceiver.ACTION_BATTERY_CHARGE);
+        filter.addAction(HomeWatcherReceiver.ACTION_BATTERY_INFO);
+        filter.addAction("BLUTOOLTH_STATUS");
+        filter.addAction("COMMAND_DATA");
+        context.registerReceiver(mHomeKeyReceiver, filter);
+    }
+
+    @SuppressLint("LongLogTag")
+    private void unregisterHomeKeyReceiver(Context context) {
+        Log.i(TAG, "unregisterHomeKeyReceiver");
+        if (null != mHomeKeyReceiver) {
+            context.unregisterReceiver(mHomeKeyReceiver);
+        }
+    }
+
+    /**
+     * 设置item底部标签
+     */
+    private void setupItemBottomTag() {
+//        List<RecommendBean.DataBean> data = recommendBean.getData();
+        for (int i = 0; i < pbItems.length; i++) {
+            //todo 全部隐藏
+            pbItems[i].setVisibility(View.GONE);
+            tvItems[i].setVisibility(View.GONE);
         }
     }
 

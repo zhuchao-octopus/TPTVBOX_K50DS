@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 
 import com.zhuchao.android.tpk50ds.R;
 
-
 /**
  * Created by Oracle on 2017/11/29.
  */

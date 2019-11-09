@@ -1,7 +1,7 @@
 <resources>
     //默认简体中文
     <string name="app_name">TP0BDK50DS</string>
-    <string name="p_d">투영</string>
+    <string name="p_d">채널</string>
     <string name="show_app_text">바로 가기 앱을 열려면 누르십시오.</string>
     <string name="menu_tips">앱을 편집하려면 메뉴 버튼을 누르십시오.</string>
     <string name="please_add">추가</string>

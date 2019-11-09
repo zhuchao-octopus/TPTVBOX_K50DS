@@ -1,1121 +1,520 @@
 package com.zhuchao.android.tpk50ds.services;
 
 import android.app.ActivityManager;
-import android.app.Instrumentation;
+import android.app.Service;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
-import android.net.Uri;
+import android.content.res.AssetFileDescriptor;
+import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
+import android.os.SystemProperties;
+import android.support.annotation.Nullable;
 import android.util.Log;
+import android.view.WindowManager;
 
-import com.iflytek.xiri.AppService;
-import com.iflytek.xiri.Feedback;
+import com.zhuchao.android.tpk50ds.R;
+import com.zhuchao.android.tpk50ds.utils.ForegroundAppUtil;
+import com.zhuchao.android.tpk50ds.views.dialogs.Mac_Dialog;
+import com.zhuchao.android.tpk50ds.views.dialogs.MusicDialog;
+import com.zhuchao.android.tpk50ds.views.dialogs.Sound_Effect_Dialog;
+import com.zhuchao.android.video.Video;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URLDecoder;
 import java.util.List;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
-/**
- * 继承自AppService，显示AppService接口，父类Service启动时调用
- *
- * @author hhtao
- */
-public class MyService extends AppService {
+import utils.ChangeTool;
 
-    private static final String TAG = MyService.class.getSimpleName();
-    private Feedback mFeedback = null;
-    //private boolean bReb = false;
-    private String action_Cammand = null;
-    private final String pull_from = "52129";
-    private String action_music = null;
+import utils.MySerialPort;
+
+public class MyService extends Service {
+    private static int MicVolume = 0;
+    private static int MusicVolume = 0;
+    private static String mTopPackageName;
+    private final String TAG = "MyService";
+    private MySerialPort MyPortDevice = new MySerialPort(this);
+    private byte[] SerialPortReceiveBuffer;
+    private String lo;
+    private Handler SerialPortReceivehandler;
+    private MusicDialog dialog;
+    private Sound_Effect_Dialog sdialog;
+    private Mac_Dialog mdialog;
+    private Callback actionCallback;
+    private byte[] bytes;
+    private int h = 0;
+    private MyReceiver receiver = null;
+    //private String mType = "";
     private byte tbb[] = {0, 0, 0, 0};
-
     private byte[] SetMusicVolume = {0x02, 0x01, 0x02, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0b, 0x7E};//设置音乐音量  K70//
     private byte[] SetMusicVolumeK50 = {0x01, 0x01, 0x02, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0a, 0x7E};//设置音乐音量  K50
-
-    private byte[] SetMicVolume = {0x02, 0x01, 0x03, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0d, 0x7E};//设置话筒音量  K70//
-    private byte[] SetMicVolumeK50 = {0x01, 0x01, 0x03, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0c, 0x7E};//设置话筒音量  K50//
-
-    private byte[] MICEffetive = {0x02, 0x01, 0x04, 0x00, 0x00, 0x02, 0x00, 0x02, 0x00, 0x09, 0x7E};// 效果 1  K70
-    private byte[] MICEffetiveK50 = {0x01, 0x01, 0x04, 0x00, 0x00, 0x02, 0x00, 0x02, 0x00, 0x08, 0x7E};//效果 1  K50
-
-    private byte[] CommandMuteOn = {0x02, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x07, 0x0C, 0x7E};// 静音开  K70
-    private byte[] CommandMuteOnK50 = {0x01, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x07, 0x0B, 0x7E};//静音开  1 K50
-
-    private byte[] CommandMuteClose = {0x02, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x08, 0x0D, 0x7E};// 静音关  K70
-    private byte[] CommandMuteCloseK50 = {0x01, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x08, 0x0C, 0x7E};//静音关    K50
-
-
-    private byte[] CommandStandby = {0x02, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x09, 0x0E, 0x7E};// 待机  K70
-    private byte[] CommandStandbyK50 = {0x01, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x09, 0x0D, 0x7E};//待机 1  K50
-
-    //private byte[] CommandMuteOn = {0x02, 0x01, 0x01, 0x00, 0x00, 0x02, 0x00, 0x07,0x00,0x0d,0x7E};// 静音开  K70
-    //private byte[] CommandMuteOnK50 = {0x01, 0x01, 0x01, 0x00, 0x00, 0x02, 0x00, 0x07,0x00,0x0c,0x7E};//静音开  1 K50
-    //private byte[] CommandMuteClose = {0x02, 0x01, 0x01, 0x00, 0x00, 0x02, 0x00, 0x08,0x00,0x0e,0x7E};// 静音关  K70
-    //private byte[] CommandMuteCloseK50 = {0x01, 0x01, 0x01, 0x00, 0x00, 0x02, 0x00, 0x08,0x00,0x0d, 0x7E};//静音关    K50
-
-    private byte[] LastAppOpen = {0x02, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x0A, 0x7E};//最后使用的app  K70
-    private byte[] LastAppClose = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//最后使用的app  K50
-
-    private MyReceiver receiver = null;
-
-    /**
-     * 暂停系统播放器
-     */
-    private void pauseMusic() {
-        Intent freshIntent = new Intent();
-        freshIntent.setAction("com.android.music.musicservicecommand.pause");
-        freshIntent.putExtra("command", "pause");
-        sendBroadcast(freshIntent);
-    }
-
-    private IVideoIntentListener mIVideoIntentListener = new IVideoIntentListener() {
-
+    private byte[] LastChanelApp = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//最后使用的app  K50
+    private byte[] QueryStateK50 = {0x01, 0x01, 0x06, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//初始状态  K50
+    private boolean isCharging = false;
+    private MediaPlayer mMediaPlayer = null;
+    private Handler handler = new Handler();
+    private Runnable r = new Runnable() {
         @Override
-        public void onExecute(Intent intent) {
-            if (intent.hasExtra("text")) {
-                boolean b = false;
-                try {
-                    b = doAppAction(intent);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        public void run() {
+            mTopPackageName = ForegroundAppUtil.getForegroundActivityName(getApplicationContext());
+            //Toast.makeText(getApplicationContext(), foregroundActivityName, Toast.LENGTH_SHORT).show();
 
-                String info = intent.getStringExtra("text") + "\r\n";
-
-                if (info.contains("电视")) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            pauseMusic();
-                            createServiceClick(LastAppOpen);
-                            createServiceClick(LastAppClose);
-                        }
-                    }).start();
-                    PackageManager packageManager = getPackageManager();
-                    Intent openQQintent = new Intent();
-                    openQQintent = packageManager.getLaunchIntentForPackage("com.dianshijia.newlive");
-                    if (openQQintent == null) {
-                        System.out.println("APP not found!");
-                    } else {
-                        if (!isTopActivity("com.dianshijia.newlive"))
-                            startActivity(openQQintent);
-                        else {
-                            // bReb = true;
-                            //mFeedback.feedback("已经在全民K歌APP", Feedback.DIALOG);
-                            //return true;
-                        }
-                    }
-                    return;
-                } else if (info.contains("当贝市场") || info.contains("应用市场")) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            pauseMusic();
-                            createServiceClick(LastAppOpen);
-                            createServiceClick(LastAppClose);
-                        }
-                    }).start();
-                    PackageManager packageManager = getPackageManager();
-                    Intent openDangbeiMarketintent = new Intent();
-                    openDangbeiMarketintent = packageManager.getLaunchIntentForPackage("com.dangbeimarket");
-                    if (openDangbeiMarketintent == null) {
-                        System.out.println("APP not found!");
-                    } else {
-                        if (!isTopActivity("com.dangbeimarket"))
-                            openDangbeiMarketintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);//add by
-                        startActivity(openDangbeiMarketintent);
-//                        else {
-//                            // bReb = true;
-//                            //mFeedback.feedback("已经在全民K歌APP", Feedback.DIALOG);
-//                            //return true;
-//                        }
-                    }
-                    return;
-                } else if (info.contains("飞视浏览器") || info.contains("浏览器")) {
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            pauseMusic();
-                            createServiceClick(LastAppOpen);
-                            createServiceClick(LastAppClose);
-                        }
-                    }).start();
-                    PackageManager packageManager = getPackageManager();
-                    Intent openBrowserintent = new Intent();
-                    openBrowserintent = packageManager.getLaunchIntentForPackage("com.ifacetv.browser");
-                    if (openBrowserintent == null) {
-                        System.out.println("APP not found!");
-                    } else {
-                        if (!isTopActivity("com.ifacetv.browser"))
-                            openBrowserintent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        startActivity(openBrowserintent);
-//                        else {
-//                            // bReb = true;
-//                            //mFeedback.feedback("已经在全民K歌APP", Feedback.DIALOG);
-//                            //return true;
-//                        }
-                    }
-                    return;
-                }
-
-                if (b == false) {
-
-                    if (isTopActivity("com.tencent.karaoketv") && (!info.contains("电影"))) {
-                        String SKey = intent.getStringExtra("text") + "\r\n";
-                        String url = "karaoketv://?action=4&pull_from=" + pull_from + "&m0=1&m1=" + SKey + "&mb=false";
-                        Log.d(TAG, url);
-                        Intent i = new Intent();
-                        i.setData(Uri.parse(url));
-                        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                        i.setPackage("com.tencent.karaoketv");
-                        Log.d(TAG, "全名K歌曲点歌---->" + info);
-                        //sendBroadcast(i);
-                        startActivity(i);
-                        pauseMusic();
-                        return;
-                    } else if (isTopActivity("com.zhuchao.android.tianpuhw")) {
-                    }
-
-
-                    //String info = intent.getStringExtra("text") + "\r\n";
-                    final Intent opentintent = new Intent();
-                    opentintent.setData(Uri.parse("tenvideo2://?action=9&search_key=" + info));
-                    opentintent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    opentintent.setPackage("com.ktcp.tvvideo");// 设置视频包名，要先确认包名
-                    // 隐式调用的方式startActivity
-                    //opentintent.setAction("com.tencent.qqlivetv.open");
-                    //PackageManager packageManager = getPackageManager();
-                    //List<ResolveInfo> activities = packageManager
-                    //        .queryIntentActivities(opentintent, 0);
-                    //boolean isIntentSafe = activities.size() > 0;
-                    //openQQintent = packageManager.getLaunchIntentForPackage("com.dianshijia.newlive");
-                    //if (isIntentSafe) {
-                    //pauseMusic();
-                    //Message msg = new Message();
-                    //msg.what = 100;
-                    //mMyHandler.sendMessage(msg);
-                    startMainActivity();
-
-                    new Handler().postDelayed(new Runnable() {
-                        public void run() {
-                            //要执行的任务
-                            startActivity(opentintent);
-                        }
-                    }, 1200);
-
-                    Log.d(TAG, "正在打开腾讯视频搜索 +" + info);
-                    //sendBroadcast(opentintent);
-                    //return;
-                    //} else {
-                    //Toast.makeText(mContext, "未安装腾讯视频 ， 无法跳转", Toast.LENGTH_SHORT).show();
-                    //}
-
-                }
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        pauseMusic();
-                        createServiceClick(LastAppOpen);
-                        createServiceClick(LastAppClose);
-                    }
-                }).start();
-            }
+            handler.postDelayed(r, 1000);
         }
     };
 
-    private IAppListener mAppListener = new IAppListener() {
-
-        @Override
-        public void onExecute(Intent intent) {
-            mFeedback.begin(intent);
-            boolean bReb = false;
-            try {
-                bReb = doAppAction(intent);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-
-            if (bReb == false) {
-                returnVoiceFeedback("当前设备没有找到这个命令，你是要唱歌吗？");
-            }
-            return;
-        }
-    };
-
-    @Override
-    protected void onInit() {
-
+    public static String GetTopPackageName() {
+        return mTopPackageName;
     }
 
-    private boolean doAppAction(Intent intent) {
-        action_Cammand = intent.getStringExtra("_command");
-        action_music = intent.getStringExtra("exit_text");
-        Log.e("TTTT", "=====" + URLDecoder.decode(intent.toURI()));
-
-
-        if (action_Cammand == null) {
-            action_Cammand = intent.getStringExtra("text");
-            Log.e("TTTTtext", "=====" + URLDecoder.decode(intent.toURI()));
-            action_music = action_Cammand;
-        }
-
-        if (action_Cammand == null) {
-            return false;
-        }
-
-        if (action_Cammand.equals("电视直播")) {
-            if (isTopActivity("com.dianshijia.newlive")) {
-                returnVoiceFeedback("电视直播已经打开");
-                return true;
-            }
-
-            PackageManager packageManager = getPackageManager();
-            Intent openQQintent = new Intent();
-            openQQintent = packageManager.getLaunchIntentForPackage("com.dianshijia.newlive");
-            if (openQQintent == null) {
-                System.out.println("APP not found!");
-                returnVoiceFeedback("没有找到相关的应用");
-                return true;
-            } else {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        pauseMusic();
-                        createServiceClick(LastAppOpen);
-                        createServiceClick(LastAppClose);
-                    }
-                }).start();
-
-                returnVoiceFeedback("正在打开电视家");
-                startActivity(openQQintent);
-            }
-
-
-            return true;
-        }
-
-        if (action_Cammand.equals("openqqtv")) {
-            if (isTopActivity("com.ktcp.tvvideo")) {
-                returnVoiceFeedback("已经在腾讯视频 APP");
-                return true;
-            }
-
-            PackageManager packageManager = getPackageManager();
-            Intent openQQintent = new Intent();
-            openQQintent = packageManager.getLaunchIntentForPackage("com.ktcp.tvvideo");
-            if (openQQintent == null) {
-                System.out.println("APP not found!");
-                returnVoiceFeedback("没有找到相关的应用");
-                return true;
-            } else {
-                pauseMusic();
-            }
-
-            returnVoiceFeedback("正在打开腾讯视频");
-            startMainActivity();
-            delayAction("正在打开腾讯视频");
-            return true;
-        }
-
-        if (action_Cammand.contains("openktv")) {
-
-            if (isTopActivity("com.tencent.karaoketv")) {
-                returnVoiceFeedback("已经在全民K歌APP");
-                return true;
-            }
-
-            PackageManager packageManager = getPackageManager();
-            Intent openQQintent = new Intent();
-            openQQintent = packageManager.getLaunchIntentForPackage("com.tencent.karaoketv");
-
-            if (openQQintent == null) {
-                System.out.println("APP not found!");
-                returnVoiceFeedback("没有找到相关的应用");
-                return true;
-            } else {
-                pauseMusic();
-            }
-
-            returnVoiceFeedback("正在打开全民K歌");
-            startMainActivity();
-            delayAction("正在打开全民K歌");
-            //startActivity(openQQintent);
-
-            return true;
-        }
-
-        if (action_Cammand.equals("music") || action_Cammand.equals("ktv")) {
-            String singer = intent.getStringExtra("singer");
-            String song = intent.getStringExtra("song");
-            String category = intent.getStringExtra("category");
-            String SKey = null;
-
-            if (singer != null)
-                SKey = singer + song;
-            else
-                SKey = song;
-
-            if (SKey == null) {
-                PackageManager packageManager = getPackageManager();
-                Intent openQQintent = new Intent();
-                openQQintent = packageManager.getLaunchIntentForPackage("com.tencent.karaoketv");
-                if (openQQintent == null) {
-                    System.out.println("APP not found!");
-                    returnVoiceFeedback("没法发现全民K歌 APP");
-                    return true;
-                } else {
-                    if (isTopActivity("com.tencent.karaoketv")) {
-                        returnVoiceFeedback("已经在全民K歌APP");
-                        return true;
-                    }
-                    returnVoiceFeedback("正在打开全民K歌 APP");
-                    startActivity(openQQintent);
-                }
-            } else {
-                if ((singer.isEmpty()) || (singer == null)) {
-                    if (isTopActivity("com.tencent.karaoketv"))
-                        returnVoiceFeedback("正在搜索" + "歌曲" + song);
-                    else
-                        returnVoiceFeedback("正在打开全民K歌搜索" + "歌曲" + song);
-                } else if ((song.isEmpty()) || (song == null)) {
-                    if (isTopActivity("com.tencent.karaoketv"))
-                        returnVoiceFeedback("正在搜索" + singer + "的歌曲");
-                    else
-                        returnVoiceFeedback("正在打开全民K歌搜索" + singer + "的歌曲");
-                } else {
-                    if (isTopActivity("com.tencent.karaoketv"))
-                        returnVoiceFeedback("正在搜索" + singer + "的歌曲" + song);
-                    else
-                        returnVoiceFeedback("正在打开全民K歌搜索" + singer + "的歌曲" + song);
-                }
-
-                Intent i = new Intent();
-                String url = "karaoketv://?action=4&pull_from=" + pull_from + "&m0=1&m1=" + SKey + "&mb=false";
-                i.setData(Uri.parse(url));
-
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                i.setPackage("com.tencent.karaoketv");
-                //sendBroadcast(i);
-                startActivity(i);
-                Log.d(TAG, "点歌------>" + url);
-            }
-
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    pauseMusic();
-                    createServiceClick(LastAppOpen);
-                    createServiceClick(LastAppClose);
-                }
-            }).start();
-
-            return true;
-        }
-
-
-        if (action_Cammand.contains("PlayControl")) {
-
-            if (isTopActivity("com.tencent.karaoketv")) {
-
-                if (action_music.contains("暂停")) {
-                    if (isTopActivity("com.android.music")) {
-                        Intent freshIntent = new Intent();
-                        freshIntent.setAction("com.android.music.musicservicecommand.pause");
-                        freshIntent.putExtra("command", "pause");
-                        sendBroadcast(freshIntent);
-                    }
-
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=18&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-
-                if (action_music.contains("播放") && !action_music.contains("暂停")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=17&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-
-                if (action_music.contains("停止")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=19&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-
-                if (action_music.contains("上一首") || action_music.contains("上一")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=20&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-
-                if ((action_music.contains("下一首") || action_music.contains("切割") || action_music.contains("切歌")) || action_music.contains("下一")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=21&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-
-                if (action_music.contains("打开原唱")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=23&pull_from=" + pull_from + "&m0=1";
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if (action_music.contains("关闭原唱")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=23&pull_from=" + pull_from + "&m0=0";
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if (action_music.contains("唱歌")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=24&pull_from=" + pull_from + "&m0=1";
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if (action_music.contains("听歌")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=24&pull_from=" + pull_from + "&m0=0";
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if ((action_music.contains("重唱") || action_Cammand.contains("再唱一遍"))) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=25&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if (action_music.contains("上一页")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=26&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if (action_music.contains("下一页")) {
-                    Intent i = new Intent();
-                    String uri = "karaoketv://?action=27&pull_from=" + pull_from;
-                    i.setData(Uri.parse(uri));
-                    sendBroadcast(i);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-            } else if (isTopActivity("com.android.music")) { //|| isTopActivity("com.softwinner.TvdVideo")
-                if (action_music.contains("播放") && !action_music.contains("暂停")) {
-                    Intent freshIntent = new Intent();
-                    freshIntent.setAction("com.android.music.musicservicecommand");
-                    freshIntent.putExtra("command", "play");
-                    sendBroadcast(freshIntent);
-                    //sendKeyEvent(85);
-                    //ProperityUtils.setProp("persist.sys.playkeyevent","play");//play,pause,play_pause bob 20190526 add
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if (action_music.contains("暂停")) {
-                    Intent freshIntent = new Intent();
-                    freshIntent.setAction("com.android.music.musicservicecommand.pause");
-                    freshIntent.putExtra("command", "pause");
-                    sendBroadcast(freshIntent);
-                    //ProperityUtils.setProp("persist.sys.playkeyevent","pause");//play,pause,play_pause bob 20190526 add
-                    //sendKeyEvent(KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if ((action_music.contains("下一首") || action_music.contains("切割") || action_music.contains("切歌")) || action_music.contains("下一")) {
-                    Intent freshIntent = new Intent();
-                    freshIntent.setAction("com.android.music.musicservicecommand");
-                    freshIntent.putExtra("command", "next");
-                    sendBroadcast(freshIntent);
-                    //sendKeyEvent(KEYCODE_F5);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-                if (action_music.contains("上一")) {
-                    Intent freshIntent = new Intent();
-                    freshIntent.setAction("com.android.music.musicservicecommand");
-                    freshIntent.putExtra("command", "previous");
-                    sendBroadcast(freshIntent);
-                    returnVoiceFeedback(action_music);
-                    return true;
-                }
-            } else {
-                returnVoiceFeedback("当前页面不支持这项功能");
-                return true;
-            }
-
-            return false;
-        }
-
-        if (action_Cammand.equals("全民K歌")) {
-
-            if ((action_music != null) && (action_music.contains("拼音点歌") || action_music.contains("点歌拼音"))) {
-                Intent i = new Intent();
-                String uri = "karaoketv://?action=4&pull_from=52129&mb=false";
-                i.setData(Uri.parse(uri));
-                sendBroadcast(i);
-                returnVoiceFeedback(action_music);
-                return true;
-            }
-
-            if (!isTopActivity("com.tencent.karaoketv")) {
-                return false;
-            }
-
-            if (action_music.contains("排行榜")) {
-                Intent i = new Intent("com.tencent.karaokTV");
-                i.putExtra("pull_from", pull_from);
-                i.putExtra("action", 1);
-                i.putExtra("mb", false);
-                sendBroadcast(i);
-                returnVoiceFeedback(action_music);
-                return true;
-            }
-            if (action_music.contains("热门歌曲")) {
-                Intent i = new Intent("com.tencent.karaokTV");
-                i.putExtra("pull_from", pull_from);
-                i.putExtra("action", 2);
-                i.putExtra("mb", false);
-                sendBroadcast(i);
-                returnVoiceFeedback(action_music);
-                return true;
-            }
-            if ((action_music.contains("消息") || action_music.contains("消息") || action_music.contains("信息"))) {
-                return false;
-            }
-            if ((action_music.contains("中心") || action_music.contains("我的"))) {
-                //mFeedback.feedback(action_music, Feedback.SILENCE);
-                Intent i = new Intent();
-                String uri = "karaoketv://?action=9&pull_from=52129&mb=false";
-                i.setData(Uri.parse(uri));
-                //Intent i = new Intent("com.tencent.karaokTV");
-                sendBroadcast(i);
-                returnVoiceFeedback(action_music);
-                return true;
-            }
-            if ((action_music.contains("已点"))) {
-                Intent i = new Intent();
-                String uri = "karaoketv://?action=8&pull_from=52129&mb=false";
-                i.setData(Uri.parse(uri));
-                //Intent i = new Intent("com.tencent.karaokTV");
-                sendBroadcast(i);
-                returnVoiceFeedback(action_music);
-                return true;
-            }
-            if (action_music.contains("历史") || action_music.contains("最近唱过")) {
-                Intent i = new Intent();
-                String uri = "karaoketv://?action=7&pull_from=52129&mb=false";
-                i.setData(Uri.parse(uri));
-                sendBroadcast(i);
-                returnVoiceFeedback(action_music);
-                return true;
-            }
-        }
-
-        if (action_Cammand.equals("JHZSIGNAL0003")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("JHZSIGNAL0002")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("JHZSIGNAL0001")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("JHZSIGNAL0004")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("文件管理")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("清理缓存")) {
-            startMainActivity();
-            delayAction(action_music);
-            return true;
-        } else if (action_Cammand.equals("我的应用")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("设置")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("最近使用")) {
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.equals("JHZTPFUN0001")) {
-            if (isTopActivity("com.android.music")) {
-                returnVoiceFeedback("当前已经是在USB 播放界面");
-                return true;
-            }
-
-            startMainActivity();
-            delayAction(action_music);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("主页")) {
-            Intent i = new Intent();
-            i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            ComponentName cn = new ComponentName("com.zhuchao.android.tianpuhw", "com.zhuchao.android.tianpuhw.activities.MainActivity");
-            i.setComponent(cn);
-
-            startActivity(i);
-            Intent d = new Intent();
-            d.putExtra("_Action", action_Cammand);
-            d.setAction("com.zhuchao.android.tianpuhw.services");
-            sendBroadcast(d);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZMICVOL0001")) {
-            Message msg = new Message();
-            msg.what = 1;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZMICVOL0002")) {
-            Message msg = new Message();
-            msg.what = 2;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZMUSICVOL0001")) {
-            Message msg = new Message();
-            msg.what = 3;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if ((action_Cammand.contains("JHZMUSICVOL0002"))) {
-            Message msg = new Message();
-            msg.what = 4;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if ((action_Cammand.contains("JHZMAINVOL0001"))) {
-            Message msg = new Message();
-            msg.what = 5;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if ((action_Cammand.contains("JHZMAINVOL0002"))) {
-            Message msg = new Message();
-            msg.what = 55;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZEFFECT0001")) {
-            Message msg = new Message();
-            msg.what = 6;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZEFFECT0002")) {
-            Message msg = new Message();
-            msg.what = 7;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZEFFECT0003")) {
-            Message msg = new Message();
-            msg.what = 8;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZEFFECT0004")) {
-            Message msg = new Message();
-            msg.what = 9;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZEFFECT0005")) {
-            Message msg = new Message();
-            msg.what = 10;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZEFFECT0006")) {
-            Message msg = new Message();
-            msg.what = 11;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        } else if (action_Cammand.contains("JHZTPFUN0002")) {
-            Message msg = new Message();
-            msg.what = 12;
-            mMyHandler.sendMessage(msg);
-            returnVoiceFeedback(action_music);
-            return true;
-        }
-
-        return false;
+    public static int getMicVolume() {
+        return MicVolume;
     }
 
-    private boolean isTopActivity(String packageName) {
-        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasksInfo = activityManager.getRunningTasks(5);
-        if (tasksInfo.size() > 0) {
-            //应用程序位于堆栈的顶层
-            String str = tasksInfo.get(0).topActivity.getPackageName();
-            if (packageName.contains(str)) {
-                return true;
-            }
-        }
-        return false;
+    public static void setMicVolume(int micVolume) {
+        MicVolume = micVolume;
     }
 
-    private boolean isTopActivity2(String packageName) {
-        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasksInfo = activityManager.getRunningTasks(5);
-        if (tasksInfo.size() > 0) {
-            //应用程序位于堆栈的顶层
-            String str = tasksInfo.get(0).topActivity.getClassName();
-            if (packageName.contains(str)) {
-                return true;
-            }
-        }
-        return false;
+    public static int getMusicVolume() {
+        return MusicVolume;
     }
 
-    public void createServiceClick(byte[] bytes) {
-        Intent intent = new Intent(this, SerialService.class);
-        if (bytes != null) {
-            intent.putExtra("serial", bytes);
-        }
-        //启动servicce服务
-        startService(intent);
+    public static void setMusicVolume(int musicVolume) {
+        MusicVolume = musicVolume;
     }
 
     @Override
     public void onCreate() {
-        //super.onCreate();
-        mFeedback = new Feedback(this);
-        setAppListener(mAppListener);
-        setVideoIntentListener(mIVideoIntentListener);
+        super.onCreate();
 
-        // 上传命令词
-        String Result = "";
-        try {
-            InputStreamReader reader = new InputStreamReader(getResources()
-                    .getAssets().open("readme.txt"));
-            BufferedReader buff = new BufferedReader(reader);
-            String line = "";
+        SerialPortReceivehandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+            }
+        };
 
-            while ((line = buff.readLine()) != null)
-                Result += line;
-            buff.close();
-            reader.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        boolean bRet = MyPortDevice.openPort("/dev/ttyS1", 9600, true);
+
+        if (bRet == false) {
+            Log.e("Service", "onCreate：串口打开失败！！！！！");
+        } else {
+            Log.e("Service", "onCreate：串口打开成功！！！！！");
+            CheckSerialPortEvent();
+
+            sendCommand(LastChanelApp);
+            sendCommand(QueryStateK50);
         }
+
+    }
+
+    public void sendCommand(byte[] bytes) {
         try {
-            Log.d(TAG, "onCreate.updateGlobal Result:" + Result);
-            updateGlobal(this, Result);
+            MyPortDevice.sendBuffer(bytes);
+            Log.i("MyService.发送数据", utils.ChangeTool.ByteArrToHexStr(bytes, 0, bytes.length));
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return new Binder();
+    }
 
-        receiver = new MyReceiver();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("com.iflytek.xiri.init.start");
-        registerReceiver(receiver, filter);
-        //adb shell am broadcast -a com.iflytek.xiri.init.start
+    public void setActionCallback(Callback actionCallback) {
+        this.actionCallback = actionCallback;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        //handler.postDelayed(r, 1000);
+        return START_STICKY;
     }
 
 
     Handler mMyHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
-            int vv = 0;
-            if (msg.what == 1) {
-
-                vv = SerialService.getMicVolume() + 4;
-
-                if (vv > 60)
-                    vv = 60;
-
-                SerialService.setMicVolume(vv);
-
-                tbb = utils.ChangeTool.intToBytes(vv);
-
-                SetMicVolume[7] = tbb[3];
-                SetMicVolume[8] = tbb[2];
-                SetMicVolume[9] = utils.ChangeTool.BytesAdd(SetMicVolume, 9);
-
-                SetMicVolumeK50[7] = tbb[3];
-                SetMicVolumeK50[8] = tbb[2];
-                SetMicVolumeK50[9] = utils.ChangeTool.BytesAdd(SetMicVolumeK50, 9);
-
-                createServiceClick(SetMicVolume);
-                createServiceClick(SetMicVolumeK50);
-
-            } else if (msg.what == 2) {
-                vv = SerialService.getMicVolume() - 4;
-
-                if (vv < 0)
-                    vv = 0;
-
-                SerialService.setMicVolume(vv);
-
-                tbb = utils.ChangeTool.intToBytes(vv);
-                SetMicVolume[7] = tbb[3];
-                SetMicVolume[8] = tbb[2];
-                SetMicVolume[9] = utils.ChangeTool.BytesAdd(SetMicVolume, 9);
-
-                SetMicVolumeK50[7] = tbb[3];
-                SetMicVolumeK50[8] = tbb[2];
-                SetMicVolumeK50[9] = utils.ChangeTool.BytesAdd(SetMicVolumeK50, 9);
-
-                createServiceClick(SetMicVolume);
-                createServiceClick(SetMicVolumeK50);
-
-            } else if (msg.what == 3) {
-                vv = SerialService.getMusicVolume() + 4;
-
-                if (vv > 60)
-                    vv = 60;
-
-                SerialService.setMusicVolume(vv);
-                tbb = utils.ChangeTool.intToBytes(vv);
-
-                SetMusicVolume[7] = tbb[3];
-                SetMusicVolume[8] = tbb[2];
-                SetMusicVolume[9] = utils.ChangeTool.BytesAdd(SetMusicVolume, 9);
-
-                SetMusicVolumeK50[7] = tbb[3];
-                SetMusicVolumeK50[8] = tbb[2];
-                SetMusicVolumeK50[9] = utils.ChangeTool.BytesAdd(SetMusicVolumeK50, 9);
-
-                createServiceClick(SetMusicVolume);
-                createServiceClick(SetMusicVolumeK50);
-
-
-            } else if (msg.what == 4) {
-                vv = SerialService.getMusicVolume() - 4;
-                if (vv <= 0)
-                    vv = 0;
-
-                SerialService.setMusicVolume(vv);
-                tbb = utils.ChangeTool.intToBytes(vv);
-
-                SetMusicVolume[7] = tbb[3];
-                SetMusicVolume[8] = tbb[2];
-                SetMusicVolume[9] = utils.ChangeTool.BytesAdd(SetMusicVolume, 9);
-
-                SetMusicVolumeK50[7] = tbb[3];
-                SetMusicVolumeK50[8] = tbb[2];
-                SetMusicVolumeK50[9] = utils.ChangeTool.BytesAdd(SetMusicVolumeK50, 9);
-
-                createServiceClick(SetMusicVolume);
-                createServiceClick(SetMusicVolumeK50);
-
-            } else if (msg.what == 5) {
-                createServiceClick(CommandMuteOn);
-                createServiceClick(CommandMuteOnK50);
-
-            } else if (msg.what == 55) {
-                createServiceClick(CommandMuteClose);
-                createServiceClick(CommandMuteCloseK50);
-            } else if (msg.what == 6) {
-                MICEffetive[7] = 1;
-                MICEffetive[8] = 0;
-                MICEffetive[9] = utils.ChangeTool.BytesAdd(MICEffetive, 9);
-                MICEffetiveK50[7] = 1;
-                MICEffetiveK50[8] = 0;
-                MICEffetiveK50[9] = utils.ChangeTool.BytesAdd(MICEffetiveK50, 9);
-                createServiceClick(MICEffetive);
-                createServiceClick(MICEffetiveK50);
-            } else if (msg.what == 7) {
-                MICEffetive[7] = 2;
-                MICEffetive[8] = 0;
-                MICEffetive[9] = utils.ChangeTool.BytesAdd(MICEffetive, 9);
-                MICEffetiveK50[7] = 2;
-                MICEffetiveK50[8] = 0;
-                MICEffetiveK50[9] = utils.ChangeTool.BytesAdd(MICEffetiveK50, 9);
-                createServiceClick(MICEffetive);
-                createServiceClick(MICEffetiveK50);
-            } else if (msg.what == 8) {
-                MICEffetive[7] = 3;
-                MICEffetive[8] = 0;
-                MICEffetive[9] = utils.ChangeTool.BytesAdd(MICEffetive, 9);
-                MICEffetiveK50[7] = 3;
-                MICEffetiveK50[8] = 0;
-                MICEffetiveK50[9] = utils.ChangeTool.BytesAdd(MICEffetiveK50, 9);
-                createServiceClick(MICEffetive);
-                createServiceClick(MICEffetiveK50);
-            } else if (msg.what == 9) {
-                MICEffetive[7] = 4;
-                MICEffetive[8] = 0;
-                MICEffetive[9] = utils.ChangeTool.BytesAdd(MICEffetive, 9);
-                MICEffetiveK50[7] = 4;
-                MICEffetiveK50[8] = 0;
-                MICEffetiveK50[9] = utils.ChangeTool.BytesAdd(MICEffetiveK50, 9);
-                createServiceClick(MICEffetive);
-                createServiceClick(MICEffetiveK50);
-            } else if (msg.what == 10) {
-                MICEffetive[7] = 5;
-                MICEffetive[8] = 0;
-                MICEffetive[9] = utils.ChangeTool.BytesAdd(MICEffetive, 9);
-                MICEffetiveK50[7] = 5;
-                MICEffetiveK50[8] = 0;
-                MICEffetiveK50[9] = utils.ChangeTool.BytesAdd(MICEffetiveK50, 9);
-                createServiceClick(MICEffetive);
-                createServiceClick(MICEffetiveK50);
-            } else if (msg.what == 11) {
-                MICEffetive[7] = 6;
-                MICEffetive[8] = 0;
-                MICEffetive[9] = utils.ChangeTool.BytesAdd(MICEffetive, 9);
-                MICEffetiveK50[7] = 6;
-                MICEffetiveK50[8] = 0;
-                MICEffetiveK50[9] = utils.ChangeTool.BytesAdd(MICEffetiveK50, 9);
-                createServiceClick(MICEffetive);
-                createServiceClick(MICEffetiveK50);
-            } else if (msg.what == 12) {
-                createServiceClick(CommandStandby);
-                createServiceClick(CommandStandbyK50);
-            } else if (msg.what == 100) {
-                pauseMusic();
-                createServiceClick(LastAppOpen);
-                createServiceClick(LastAppClose);
-                //Intent intent = new Intent();
-                //intent.putExtra("_Action", "music");
-                //intent.setAction("com.zhuchao.android.tianpuhw.services");
-                //sendBroadcast(intent);
+            switch (msg.what) {
+                case 0:
+                    //playMusic(context, R.raw.tp00);
+                    break;
+                case 1:
+                    playMusic(null, R.raw.tp001);
+                    break;
+                case 2:
+                    playMusic(null, R.raw.tp002);
+                    break;
+                case 3:
+                    playMusic(null, R.raw.tp003);
+                    break;
+                case 4:
+                    playMusic(null, R.raw.tp004);
+                    break;
+                case 5:
+                    playMusic(null, R.raw.tp005);
+                    break;
+                case 6:
+                    playMusic(null, R.raw.tp006);
+                    break;
+                case 7:
+                    playMusic(null, R.raw.tp007);
+                    break;
+                case 8:
+                    playMusic(null, R.raw.tp008);
+                    break;
+                case 9:
+                    playMusic(null, R.raw.tp009);
+                    break;
+                case 10:
+                    playMusic(null, R.raw.tp010);
+                    break;
+                case 11:
+                    playMusic(null, R.raw.tp011);
+                    break;
+                case 12:
+                    playMusic(null, R.raw.tp012);
+                    break;
             }
-            msg.what = 0;
         }
+
     };
 
-    private void delayAction(final String cmd) {
-        new Handler().postDelayed(new Runnable() {
-            public void run() {
-                //要执行的任务
-                Intent d = new Intent();
-                d.putExtra("_Action", cmd);
-                d.setAction("com.zhuchao.android.tianpuhw.services");
-                sendBroadcast(d);
-            }
-        }, 1200);
+    private void playMusic(final Context c, final int resID) {
+        String suri = "android.resource://" + this.getApplicationContext().getPackageName() + "/" +resID;
+        //Uri uri = Uri.parse(suri);
+        AssetFileDescriptor afd = getResources().openRawResourceFd(resID);
+        Video video = new Video(suri,null,null);
+        video.with(this.getApplicationContext());
+        video.getmOPlayer().setSourceInfo(afd);
+        video.playInto(null);
     }
 
-    private void startMainActivity() {
-        Intent i = new Intent();
-        ComponentName cn = new ComponentName("com.zhuchao.android.tianpuhw", "com.zhuchao.android.tianpuhw.activities.MainActivity");
-        i.setComponent(cn);
-        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(i);
-    }
+    private void CheckSerialPortEvent() {
+        //串口数据监听事件
+        MyPortDevice.setOnDataReceiveListener(new MySerialPort.OnDataReceiveListener() {
+            Runnable runnable = new Runnable() {
+                @Override
+                public void run() {
 
+                    if (lo.length() >= 16) {
+                        VolumeChange(lo);
+                    }
+                }
+            };
 
-    public static void sendKeyEvent(final int KeyCode) {
-        new Thread() {     //不可在主线程中调用
-            public void run() {
-                try {
-                    Instrumentation inst = new Instrumentation();
-                    inst.sendKeyDownUpSync(KeyCode);
-                } catch (Exception e) {
-                    e.printStackTrace();
+            @Override
+            public void onDataReceive(Context context, byte[] buffer, int size) {
+                SerialPortReceiveBuffer = buffer;
+                lo = utils.ChangeTool.ByteArrToHexStr(SerialPortReceiveBuffer, 0, size);
+
+                if (buffer[2] == 0x06) {
+                    MusicVolume = buffer[7];
+                    MicVolume = buffer[8];
+                    return;
+                }
+                //播放特效声
+                if (buffer[2] == 0x21) {
+                    byte result = buffer[5];
+                    mMyHandler.sendEmptyMessage(result);
+                    return;
+                }
+                //Setting
+                if (buffer[2] == 0x01) {
+                    byte result = buffer[7];
+                    if (result == 0x20) {
+                        Intent in = new Intent();
+                        in.setClassName("com.android.settings", "com.android.settings.Settings");
+                        startActivity(in);
+                    }
+                    return;
+                }
+                //是蓝牙连接
+                if (buffer[2] == 0x24) {
+                    byte result = buffer[7];
+                    Intent intent = new Intent("BLUTOOLTH_STATUS");
+                    intent.putExtra("BLUTOOLTH_STATUS", result == 0x01);
+                    sendBroadcast(intent);
+                    return;
+                }
+                //是否充电
+                if (buffer[2] == 0x22) {
+                    byte result = buffer[7];
+                    Intent intent = new Intent("BATTERY_CHARGE");
+                    if (result == 0x01)
+                        isCharging = true;
+                    else
+                        isCharging = false;
+
+                    intent.putExtra("isCharge", isCharging);
+                    sendBroadcast(intent);
+                    return;
+                }
+                //电量值
+                if (buffer[2] == 0x23) {
+                    Intent intent = new Intent("BATTERY_INFO");
+                    int v = ChangeTool.HexToInt(ChangeTool.Byte2Hex(buffer[7]));
+                    intent.putExtra("value", v);
+                    sendBroadcast(intent);
+                    Log.i("onDataReceive", lo);
+                    if ((v <= 10) && (!isCharging))
+                        playMusic(context, R.raw.charge);
+                    return;
+                }
+
+                if (buffer[2] == 0x25) {
+                    int v = ChangeTool.HexToInt(ChangeTool.Byte2Hex(buffer[7]));
+                    SystemProperties.set("ro.dsp.version", String.valueOf(v));
+                    //System.setProperty("ro.dsp.version", String.valueOf(v));
+                    Log.i(TAG, "SystemProperties.set(\"ro.dsp.version\", String.valueOf(v));v=" + v);
+                    return;
+                }
+                if (null != SerialPortReceivehandler) {
+                    SerialPortReceivehandler.post(runnable);
+                } else {
+                    Log.i("onDataReceive", "SerialPortReceivehandler=null");
                 }
             }
 
-        }.start();
+        });
     }
 
+    private void VolumeChange(String volume) {
+
+        String type = volume.substring(4, 8);
+        String value = volume.substring(12, 16);
+        int v = Integer.valueOf(value, 16);
+        Log.i("VolumeChange", "type=" + type + "   lo=" + lo + "   v=" + v);
+        if (type.equals("0200")) {
+            //音乐音量
+            if ((v >= 0) && (v <= 60)) {
+                showVolumeDialog(v, type);
+                MusicVolume = v;
+            }
+        } else if (type.equals("0300")) {
+            //mic音量
+            if ((v >= 0) && (v <= 60)) {
+                showVolumeDialog(v, type);
+                MicVolume = v;
+            }
+        } else if (type.equals("0400")) {
+            //音效
+            switch (v) {
+                case 1:
+                    showEffectDialog3(R.drawable.u20, v, "1 主持", type);
+                    break;
+                case 2:
+                    showEffectDialog3(R.drawable.u20, v, "2 唱将", type);
+                    break;
+                case 3:
+                    showEffectDialog3(R.drawable.u20, v, "3 喊麦", type);
+                    break;
+                case 4:
+                    showEffectDialog3(R.drawable.u20, v, "4 专业", type);
+                    break;
+                case 5:
+                    showEffectDialog3(R.drawable.u20, v, "5 演唱", type);
+                    break;
+            }
+
+        } else if (type.equals("0500"))
+        {
+            if (actionCallback != null) {
+                //if(IsTopActivtyFromLolipopOnwards("com.zhuchao.android.tianpu")==false)
+                {
+                    Intent i = new Intent();
+                    i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    ComponentName cn = new ComponentName("com.zhuchao.android.tianpu", "com.zhuchao.android.tianpu.activities.MainActivity");
+                    i.setComponent(cn);
+
+                    startActivity(i);
+                }
+                actionCallback.onDataChange(lo);
+            }
+        } else if (type.equals("0700")) {
+            //吉他
+            showVolumeDialog2(R.drawable.jt, v, type);
+        } else if (type.equals("0800")) {
+            //监听
+            showVolumeDialog2(R.drawable.ej, v, type);
+        } else if (type.equals("0900")) {
+            //直播
+            showVolumeDialog2(R.drawable.zb, v, type);
+        }
+
+    }
+    private boolean isTopActivity(String packageName) {
+        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        List<ActivityManager.RunningTaskInfo> tasksInfo = activityManager.getRunningTasks(5);
+        if (tasksInfo.size() > 0) {
+            //应用程序位于堆栈的顶层
+            String str = tasksInfo.get(0).topActivity.getPackageName();
+            if (packageName.equals(str)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void showVolumeDialog(int direction, String type) {
+        if (dialog == null || dialog.isShowing() != true) {
+            dialog = new MusicDialog(this);
+            //dialog.setVolumeAdjustListener();
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            //dialog.show();
+        }
+        dialog.adjustVolume(direction, true, type);
+    }
+
+    private void showVolumeDialog2(int resid, int v, String type) {
+        if (dialog == null || dialog.isShowing() != true) {
+            dialog = new MusicDialog(this);
+            //dialog.setVolumeAdjustListener();
+            dialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            //dialog.show();
+        }
+        dialog.setImageView(resid);
+        dialog.adjustVolume(v, true, type);
+    }
+
+    private void showEffectDialog(int direction, String type) {
+        if (sdialog == null || sdialog.isShowing() != true) {
+            sdialog = new Sound_Effect_Dialog(this);
+            //sdialog.setVolumeAdjustListener();
+            sdialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            sdialog.show();
+        }
+        sdialog.adjustVolume(direction, true, type);
+    }
+
+    private void showEffectDialog3(int resID, int v, String Str, String type) {
+        if (sdialog == null || sdialog.isShowing() != true) {
+            sdialog = new Sound_Effect_Dialog(this);
+            sdialog.getWindow().setType(WindowManager.LayoutParams.TYPE_SYSTEM_ALERT);
+            sdialog.show();
+        }
+        sdialog.adjustVolume(v, true, type);
+        sdialog.setContentValue(resID, Str);
+
+    }
+
+    private void setVolume(int i) {
+        tbb = utils.ChangeTool.intToBytes(i);
+
+        //SetMusicVolume[7] = tbb[3];
+        //SetMusicVolume[8] = tbb[2];
+        //SetMusicVolume[9] = utils.ChangeTool.BytesAdd(SetMusicVolume, 9);
+
+        SetMusicVolumeK50[7] = tbb[3];
+        SetMusicVolumeK50[8] = tbb[2];
+        SetMusicVolumeK50[9] = utils.ChangeTool.BytesAdd(SetMusicVolumeK50, 9);
+
+
+        ///MyPortDevice.sendBuffer(SetMusicVolume);
+        MyPortDevice.sendBuffer(SetMusicVolumeK50);
+        //Log.e("MyPortDevice", utils.ChangeTool.ByteArrToHexStr(bytes, 0, bytes.length));
+    }
+
+    public Boolean IsTopActivtyFromLolipopOnwards(String PackageName) {
+        String topPackageName;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            UsageStatsManager mUsageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
+            long time = System.currentTimeMillis();
+            List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000 * 10, time);
+            if (stats != null) {
+                SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
+                for (UsageStats usageStats : stats) {
+                    mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                }
+                if (mySortedMap != null && !mySortedMap.isEmpty()) {
+                    topPackageName = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                    Log.e("TopPackage Name", topPackageName);
+                    if (topPackageName.equals(PackageName)) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public static interface Callback {
+        void onDataChange(String data);
+    }
+
+    public class Binder extends android.os.Binder {  //
+        public MyService getService() {
+
+            receiver = new MyReceiver();
+            IntentFilter filter = new IntentFilter();
+            filter.addAction("com.iflytek.xiri2.hal.volume");
+            filter.addAction("com.iflytek.xiri2.hal.iflytekService");
+            registerReceiver(receiver, filter);
+
+            return MyService.this;
+        }
+
+    }
 
     public class MyReceiver extends BroadcastReceiver {
         //adb shell am broadcast -a com.iflytek.xiri2.hal.volume
         //adb shell am broadcast -a com.iflytek.xiri2.hal.volume --es volume 30
-        //adb shell am broadcast -a com.zhuchao.android.tianpuhw.services
+        //adb shell am broadcast -a com.zhuchao.android.tianpu.services
         @Override
         public void onReceive(Context context, Intent intent) {
+            int data = -1;
+            String mType = "0200";
             Bundle bundle = intent.getExtras();
-            Log.d("MyReceiver.xify--->", intent.getAction());
 
-
-            // 上传命令词
-            String Result = "";
-            try {
-                InputStreamReader reader = new InputStreamReader(getResources()
-                        .getAssets().open("readme.txt"));
-                BufferedReader buff = new BufferedReader(reader);
-                String line = "";
-
-                while ((line = buff.readLine()) != null)
-                    Result += line;
-                buff.close();
-                reader.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            try {
-                Log.d(TAG, "MyReceiver.updateGlobal Result:" + Result);
-                updateGlobal(MyService.this, Result);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (bundle != null) {
+                data = bundle.getInt("volume", -1);
+                mType = bundle.getString("type", "0200");
             }
 
+
+            if (intent.getAction().equals("com.iflytek.xiri2.hal.volume")) {
+                if (data > 60) data = 60;
+
+                Log.d("MyReceiver--->", intent.getAction() + ":volume=" + data);
+
+                if (intent.getAction() == "com.iflytek.xiri2.hal.volume") {
+                    if ((data >= 0) && (data <= 60)) {
+                        if (mType.equals("0200")) {
+                            //音乐音量
+                            showVolumeDialog(data, mType);
+                            MusicVolume = data;
+                            setVolume(MusicVolume);
+                        } else if (mType.equals("0300")) {
+                            //mic音量
+                            showVolumeDialog(data, mType);
+                            MicVolume = data;
+                        } else {
+                            showVolumeDialog(data, mType);
+                            MusicVolume = data;
+                        }
+                    } else {
+                        showVolumeDialog(MusicVolume, "0200");
+                    }
+                }
+            }
+            if (intent.getAction().equals("com.iflytek.xiri2.hal.iflytekService")) {
+                byte[] bytes = bundle.getByteArray("SerialData");
+                sendCommand(bytes);
+            }
         }
     }
 
-    private void returnVoiceFeedback(String str) {
-        if (str != null)
-            mFeedback.feedback(str, Feedback.DIALOG);
-        else if (action_music != null)
-            mFeedback.feedback(action_music, Feedback.DIALOG);
-        else if (action_Cammand != null)
-            mFeedback.feedback(action_Cammand, Feedback.DIALOG);
-        else
-            mFeedback.feedback("关键字错误", Feedback.DIALOG);
-    }
-
 }
-
-
-

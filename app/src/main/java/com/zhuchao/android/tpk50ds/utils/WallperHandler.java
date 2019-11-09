@@ -5,7 +5,6 @@ import android.content.Context;
 import android.text.TextUtils;
 import android.util.Log;
 
-
 import com.zhuchao.android.tpk50ds.R;
 
 import java.io.InputStream;
@@ -58,9 +57,9 @@ public class WallperHandler {
 
     private String[] loadDef() {
         String[] imgArr = new String[]{
-                String.format("res://com.zhuchao.android.tianpuhw/%d", R.drawable.iv7),
-                String.format("res://com.zhuchao.android.tianpuhw/%d", R.drawable.ad2),
-                String.format("res://com.zhuchao.android.tianpuhw/%d", R.drawable.ad3),
+                String.format("res://com.zhuchao.android.tianpu/%d", R.drawable.iv7),
+                String.format("res://com.zhuchao.android.tianpu/%d", R.drawable.ad2),
+                String.format("res://com.zhuchao.android.tianpu/%d", R.drawable.ad3),
         };
         return imgArr;
     }

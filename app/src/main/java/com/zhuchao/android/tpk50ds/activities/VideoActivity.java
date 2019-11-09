@@ -15,17 +15,18 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.WindowManager;
 import android.widget.Toast;
 import android.widget.VideoView;
 
-import com.google.gson.Gson;
-
-import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.data.json.regoem.RecommendvideoBean;
+
 import com.zhuchao.android.tpk50ds.utils.HttpUtils;
 import com.zhuchao.android.tpk50ds.utils.NetTool;
 import com.zhuchao.android.tpk50ds.utils.Utils;
+import com.google.gson.Gson;
+import com.zhuchao.android.tpk50ds.R;
+//import com.zhuchao.android.netutil.CheckNet;
+//import com.zhuchao.android.netutil.DownloadManager;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -44,9 +45,6 @@ import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.Request;
 import okhttp3.Response;
-
-//import com.zhuchao.android.netutil.CheckNet;
-//import com.zhuchao.android.netutil.DownloadManager;
 
 
 
@@ -80,8 +78,7 @@ public class VideoActivity extends AppCompatActivity implements NetTool.OnNetLis
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON,WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setContentView(R.layout.activity_video);
         requestPermition();
         vv = findViewById(R.id.vv_video);
@@ -358,7 +355,7 @@ public class VideoActivity extends AppCompatActivity implements NetTool.OnNetLis
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-//                    String cache_video = FileUtils.getMusics("/com.zhuchao.android.tianpuhw/");
+//                    String cache_video = FileUtils.getMusics("/com.h3launcher/");
 //                    if (null != cache_video && !cache_video.equals(fileName)) {
 //                        File file = new File(cache_video);
 //                        if (file.exists() && file.isFile()) {

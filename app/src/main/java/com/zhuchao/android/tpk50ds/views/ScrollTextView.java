@@ -16,7 +16,6 @@ import android.view.View;
 
 import com.zhuchao.android.tpk50ds.R;
 
-
 /**
  * Created by deanwild on 14/03/16.
  */

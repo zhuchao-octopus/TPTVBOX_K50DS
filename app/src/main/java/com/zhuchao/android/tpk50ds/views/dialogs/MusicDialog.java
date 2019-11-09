@@ -14,8 +14,8 @@ import android.widget.ImageView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.activities.MainActivity;
+import com.zhuchao.android.tpk50ds.R;
 
 /**
  * 菜单键的弹窗
@@ -48,7 +48,7 @@ public class MusicDialog extends Dialog implements SeekBar.OnSeekBarChangeListen
         mMaxVolume = 60;
         mNowVolume = mAudioMgr.getStreamVolume(MUSIC);
         view = LayoutInflater.from(context).inflate(R.layout.music_dialog, null);
-        dialog = new Dialog(context, R.style.music_dialog);
+        dialog = new Dialog(context,R.style.music_dialog);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         textView = view.findViewById(R.id.tv_value);
         imageView = view.findViewById(R.id.iv_mic);
@@ -76,13 +76,18 @@ public class MusicDialog extends Dialog implements SeekBar.OnSeekBarChangeListen
             imageView.setImageResource(R.drawable.u9);
             textView.setText(String.valueOf(mNowVolume));
         }
-        Log.d("MusicDialog","show");
+        else
+        {
+            textView.setText(String.valueOf(mNowVolume));
+        }
         dialog.show();
         close();
     }
-
+    public void setImageView(int resId)
+    {
+        imageView.setImageResource(resId);
+    }
     public void dismiss() {
-        Log.d("MusicDialog","dismiss");
         if (dialog != null && dialog.isShowing()) {
             dialog.dismiss();
         }
@@ -106,7 +111,7 @@ public class MusicDialog extends Dialog implements SeekBar.OnSeekBarChangeListen
         }
 
         types = type;
-        Log.e("music","types="+types+"     mNowVolume="+mNowVolume);
+        Log.e("music","types="+types+"     mNowVolume="+mNowVolume+"/"+direction);
         show();
     }
 
@@ -138,13 +143,7 @@ public class MusicDialog extends Dialog implements SeekBar.OnSeekBarChangeListen
 
     @Override
     public void onStopTrackingTouch(SeekBar seekBar) {
-//        Log.e("Tag","哈哈哈哈");
-//        mNowVolume = mMaxVolume * seekBar.getProgress() / seekBar.getMax();
-//        mAudioMgr.setStreamVolume(MUSIC, mNowVolume, AudioManager.FLAG_PLAY_SOUND);
-//        if (mListener != null) {
-//            mListener.onVolumeAdjust(mNowVolume);
-//        }
-//        close();
+
     }
 
     private VolumeAdjustListener mListener;

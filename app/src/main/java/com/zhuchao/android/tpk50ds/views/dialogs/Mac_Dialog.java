@@ -8,9 +8,8 @@ import android.view.View;
 import android.view.Window;
 import android.widget.TextView;
 
-
-import com.zhuchao.android.tpk50ds.R;
 import com.zhuchao.android.tpk50ds.activities.MainActivity;
+import com.zhuchao.android.tpk50ds.R;
 
 /**
  * 菜单键的弹窗
@@ -36,7 +35,7 @@ public class Mac_Dialog extends Dialog  {
 
     public void show() {
         dialog.getWindow().setContentView(view);
-        dialog.getWindow().setLayout(470, 255);
+//        dialog.getWindow().setLayout(470, 255);
         if (!"".equals(types)) {
             tv.setText("MAC:"+types);
         }

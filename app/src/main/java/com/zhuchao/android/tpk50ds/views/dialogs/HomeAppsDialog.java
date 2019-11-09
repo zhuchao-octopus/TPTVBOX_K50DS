@@ -95,7 +95,6 @@ public class HomeAppsDialog extends Dialog {
     }
 
     public static HomeAppsDialog showHomeAppDialog(Context context, int vId) {
-        Log.d("HomeAppsDialog","HomeAppsDialog -- showHomeAppDialog");
         HomeAppsDialog homeAppsDialog = new HomeAppsDialog(context, R.style.MenuDialog, vId);
         homeAppsDialog.show();
         return homeAppsDialog;
