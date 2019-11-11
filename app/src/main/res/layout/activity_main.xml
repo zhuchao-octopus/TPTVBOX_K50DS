@@ -114,15 +114,15 @@
             android:layout_marginRight="20.0dip"
             android:layout_toLeftOf="@id/iv_battery" />
 
-		<ImageView
-			android:id="@+id/iv_battery"
-			android:layout_width="wrap_content"
-			android:layout_height="wrap_content"
-			android:layout_marginTop="52dp"
-			android:layout_marginRight="10dp"
-			android:layout_toLeftOf="@id/net_iv"
-			android:src="@drawable/cell4"
-			android:visibility="gone" />
+        <ImageView
+            android:id="@+id/iv_battery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="52dp"
+            android:layout_marginRight="10dp"
+            android:layout_toLeftOf="@id/net_iv"
+            android:src="@drawable/cell4"
+            android:visibility="visible"/>
 
         <ImageView
             android:id="@+id/net_iv"
@@ -131,7 +131,7 @@
             android:layout_marginTop="40dp"
             android:layout_marginRight="30.0dip"
             android:layout_toStartOf="@id/time_tv"
-            android:src="@drawable/net"
+            android:src="@drawable/netno"
             android:visibility="visible" />
 
         <TextView
@@ -353,22 +353,21 @@
             android:focusable="true"
             android:focusableInTouchMode="true"
             android:nextFocusRight="@id/fl14"
-			android:visibility="gone" >
+			android:visibility="gone">
 
-			<com.facebook.drawee.view.SimpleDraweeView
-				android:id="@+id/bg_iv111"
-				android:layout_width="166dp"
-				android:layout_height="55dp"
-				android:clickable="false"
-				android:focusableInTouchMode="false"
-				android:scaleType="fitXY"
-				android:visibility="gone"
-				fresco:failureImage="@drawable/failedbg1"
-				fresco:failureImageScaleType="fitXY"
-				fresco:placeholderImage="@drawable/xaa"
-				fresco:placeholderImageScaleType="fitXY"
-				fresco:retryImage="@drawable/failedbg1"
-				fresco:retryImageScaleType="fitXY" />
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/bg_iv111"
+                android:layout_width="166dp"
+                android:layout_height="55dp"
+                android:clickable="false"
+                android:focusableInTouchMode="false"
+                android:scaleType="fitXY"
+                fresco:failureImage="@drawable/failedbg1"
+                fresco:failureImageScaleType="fitXY"
+                fresco:placeholderImage="@drawable/xaa"
+                fresco:placeholderImageScaleType="fitXY"
+                fresco:retryImage="@drawable/failedbg1"
+                fresco:retryImageScaleType="fitXY" />
         </FrameLayout>
 
         <!--同轴 去掉-->
@@ -525,8 +524,7 @@
                 android:layout_width="40dp"
                 android:layout_height="40dp"
                 android:layout_gravity="center"
-                android:scaleType="fitXY"
-				android:visibility="gone"/>
+                android:scaleType="fitXY" />
         </FrameLayout>
 
         <FrameLayout

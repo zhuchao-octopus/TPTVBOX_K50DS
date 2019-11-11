@@ -11,7 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 
-import com.zhuchao.android.tpk50ds.utils.AppMain;
+import com.zhuchao.android.tpk50ds.utils.MyApplication;
 import com.zhuchao.android.tpk50ds.utils.Utils;
 import com.zhuchao.android.tpk50ds.views.MainUpView;
 
@@ -46,7 +46,7 @@ public class SelEffectBridge extends BaseEffectBridge {
 	@Override
 	public void setUpRectResource(int resId) {
 		try {
-			mDrawableUpRect = AppMain.res().getDrawable(resId);
+			mDrawableUpRect = MyApplication.res().getDrawable(resId);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

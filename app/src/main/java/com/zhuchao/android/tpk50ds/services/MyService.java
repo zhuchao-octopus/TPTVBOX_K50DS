@@ -17,7 +17,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.SystemProperties;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.view.WindowManager;
 
@@ -26,15 +26,16 @@ import com.zhuchao.android.tpk50ds.utils.ForegroundAppUtil;
 import com.zhuchao.android.tpk50ds.views.dialogs.Mac_Dialog;
 import com.zhuchao.android.tpk50ds.views.dialogs.MusicDialog;
 import com.zhuchao.android.tpk50ds.views.dialogs.Sound_Effect_Dialog;
-import com.zhuchao.android.video.Video;
+
 
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import utils.ChangeTool;
+import com.zhuchao.android.tpk50ds.utils.ChangeTool;
 
-import utils.MySerialPort;
+import com.zhuchao.android.tpk50ds.utils.MySerialPort;
+import com.zhuchao.android.video.OMedia;
 
 public class MyService extends Service {
     private static int MicVolume = 0;
@@ -102,6 +103,7 @@ public class MyService extends Service {
             }
         };
 
+        //boolean bRet = MyPortDevice.openPort("/dev/ttyS0", 9600, true);
         boolean bRet = MyPortDevice.openPort("/dev/ttyS1", 9600, true);
 
         if (bRet == false) {
@@ -119,7 +121,7 @@ public class MyService extends Service {
     public void sendCommand(byte[] bytes) {
         try {
             MyPortDevice.sendBuffer(bytes);
-            Log.i("MyService.发送数据", utils.ChangeTool.ByteArrToHexStr(bytes, 0, bytes.length));
+            Log.i("MyService.发送数据", ChangeTool.ByteArrToHexStr(bytes, 0, bytes.length));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -199,7 +201,7 @@ public class MyService extends Service {
         String suri = "android.resource://" + this.getApplicationContext().getPackageName() + "/" +resID;
         //Uri uri = Uri.parse(suri);
         AssetFileDescriptor afd = getResources().openRawResourceFd(resID);
-        Video video = new Video(suri,null,null);
+        OMedia video = new OMedia(suri,null,null);
         video.with(this.getApplicationContext());
         video.getmOPlayer().setSourceInfo(afd);
         video.playInto(null);
@@ -221,7 +223,7 @@ public class MyService extends Service {
             @Override
             public void onDataReceive(Context context, byte[] buffer, int size) {
                 SerialPortReceiveBuffer = buffer;
-                lo = utils.ChangeTool.ByteArrToHexStr(SerialPortReceiveBuffer, 0, size);
+                lo = ChangeTool.ByteArrToHexStr(SerialPortReceiveBuffer, 0, size);
 
                 if (buffer[2] == 0x06) {
                     MusicVolume = buffer[7];
@@ -414,20 +416,20 @@ public class MyService extends Service {
     }
 
     private void setVolume(int i) {
-        tbb = utils.ChangeTool.intToBytes(i);
+        tbb = ChangeTool.intToBytes(i);
 
         //SetMusicVolume[7] = tbb[3];
         //SetMusicVolume[8] = tbb[2];
-        //SetMusicVolume[9] = utils.ChangeTool.BytesAdd(SetMusicVolume, 9);
+        //SetMusicVolume[9] = com.zhuchao.android.tianpu.utils.ChangeTool.BytesAdd(SetMusicVolume, 9);
 
         SetMusicVolumeK50[7] = tbb[3];
         SetMusicVolumeK50[8] = tbb[2];
-        SetMusicVolumeK50[9] = utils.ChangeTool.BytesAdd(SetMusicVolumeK50, 9);
+        SetMusicVolumeK50[9] = ChangeTool.BytesAdd(SetMusicVolumeK50, 9);
 
 
         ///MyPortDevice.sendBuffer(SetMusicVolume);
         MyPortDevice.sendBuffer(SetMusicVolumeK50);
-        //Log.e("MyPortDevice", utils.ChangeTool.ByteArrToHexStr(bytes, 0, bytes.length));
+        //Log.e("MyPortDevice", com.zhuchao.android.tianpu.utils.ChangeTool.ByteArrToHexStr(bytes, 0, bytes.length));
     }
 
     public Boolean IsTopActivtyFromLolipopOnwards(String PackageName) {

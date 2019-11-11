@@ -5,10 +5,12 @@ package com.zhuchao.android.tpk50ds.data;
  */
 public interface PackageName {
     //全民K歌
-    String qmSing = "com.google.android.youtube.tv";
-    String qqMusic = "com.facebook.katana";
-    String qqTv = "com.android.vending";
-    String hdp = "com.rockchips.dlna";
+    String qmSing = "com.tencent.karaoketv";
+    String qqMusic = "com.tencent.qqmusictv";
+    String qqTv = "com.ktcp.tvvideo";
+    String hdp = "hdpfans.com";
 
     String dbMarket = "com.dangbeimarket";
+    String lebo = "com.hpplay.happycas";
+    String feishi = "";
 }
