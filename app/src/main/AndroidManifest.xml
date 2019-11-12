@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.zhuchao.android.tpk50ds">
+    package="com.zhuchao.android.tianpu">
 
     <!--    android:sharedUserId="android.uid.system"-->
 
@@ -31,7 +31,7 @@
 
     <application
         android:largeHeap="true"
-        android:name="com.zhuchao.android.tpk50ds.utils.MyApplication"
+        android:name="com.zhuchao.android.tianpu.utils.MyApplication"
 
         android:allowBackup="true"
         android:persistent="true"
@@ -43,7 +43,7 @@
 
 
 
-        <activity android:name="com.zhuchao.android.tpk50ds.activities.MainActivity"
+        <activity android:name="com.zhuchao.android.tianpu.activities.MainActivity"
             android:launchMode="singleInstance"
             android:screenOrientation="userLandscape"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|screenLayout">
@@ -54,10 +54,10 @@
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
-        <activity android:name="com.zhuchao.android.tpk50ds.activities.AppsActivity" />
-        <service android:name="com.zhuchao.android.tpk50ds.services.MyService" android:enabled="true"/>
+        <activity android:name="com.zhuchao.android.tianpu.activities.AppsActivity" />
+        <service android:name="com.zhuchao.android.tianpu.services.MyService" android:enabled="true"/>
 
-        <service android:name="com.zhuchao.android.tpk50ds.services.iflytekService" >
+        <service android:name="com.zhuchao.android.tianpu.services.iflytekService" >
             <intent-filter>
                 <action android:name="com.iflytek.xiri2.app.NOTIFY" />
                 <action android:name="android.intent.action.MAIN" />
@@ -74,7 +74,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.zhuchao.android.tpk50ds.fileProvider"
+            android:authorities="com.zhuchao.android.tianpu.fileProvider"
             android:grantUriPermissions="true"
             android:exported="false">
             <meta-data

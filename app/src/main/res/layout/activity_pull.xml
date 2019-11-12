@@ -102,7 +102,7 @@
                 style="@style/BOTTOM_APP_BTN_STYLE"/>
         </RelativeLayout>
 
-        <com.zhuchao.android.tpk50ds.views.MainUpView
+        <com.zhuchao.android.tianpu.views.MainUpView
             android:id="@+id/pull_mianup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />

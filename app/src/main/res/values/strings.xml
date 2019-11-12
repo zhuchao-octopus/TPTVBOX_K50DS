@@ -1,7 +1,7 @@
 <resources>
     //默认英语
-    <string name="app_name">TP0BDK50DS</string>
-    <string name="p_d">Projection</string>
+    <string name="app_name">TP0BDH1235</string>
+    <string name="p_d">channel</string>
     <string name="show_app_text">Press open shortcut application</string>
     <string name="menu_tips">Press the menu key to edit the application</string>
     <string name="please_add">Please add</string>
