@@ -19,7 +19,7 @@ android {
                 //def fileName = "TPDYX0${defaultConfig.versionName}.apk"
                 //def fileName = "TPHWBD${defaultConfig.versionName}.apk"
                 //def fileName = "TPHWM0${defaultConfig.versionName}.apk"
-                def fileName = "TP0BDH1235_v${defaultConfig.versionName}_${releaseTime()}.apk"
+                def fileName = "TP0BDK50DS_v${defaultConfig.versionName}_${releaseTime()}.apk"
                 outputFileName = fileName
             }
     }
@@ -29,8 +29,8 @@ android {
         applicationId "com.zhuchao.android.tpk50ds"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 68
-        versionName "6.8"
+        versionCode 70
+        versionName "7.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             moduleName "myserialport"

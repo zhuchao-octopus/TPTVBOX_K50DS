@@ -103,8 +103,8 @@ public class MyService extends Service {
             }
         };
 
-        //boolean bRet = MyPortDevice.openPort("/dev/ttyS0", 9600, true);
-        boolean bRet = MyPortDevice.openPort("/dev/ttyS1", 9600, true);
+        boolean bRet = MyPortDevice.openPort("/dev/ttyS0", 9600, true);
+       // boolean bRet = MyPortDevice.openPort("/dev/ttyS1", 9600, true);
 
         if (bRet == false) {
             Log.e("Service", "onCreate：串口打开失败！！！！！");
@@ -286,6 +286,9 @@ public class MyService extends Service {
                     Log.i(TAG, "SystemProperties.set(\"ro.dsp.version\", String.valueOf(v));v=" + v);
                     return;
                 }
+
+
+
                 if (null != SerialPortReceivehandler) {
                     SerialPortReceivehandler.post(runnable);
                 } else {
@@ -341,7 +344,7 @@ public class MyService extends Service {
                 {
                     Intent i = new Intent();
                     i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                    ComponentName cn = new ComponentName("com.zhuchao.android.tianpu", "com.zhuchao.android.tianpu.activities.MainActivity");
+                    ComponentName cn = new ComponentName("com.zhuchao.android.tpk50ds", "com.zhuchao.android.tpk50ds.activities.MainActivity");
                     i.setComponent(cn);
 
                     startActivity(i);

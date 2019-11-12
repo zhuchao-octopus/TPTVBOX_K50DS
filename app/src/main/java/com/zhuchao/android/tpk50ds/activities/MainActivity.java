@@ -301,7 +301,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         //String mac = netUtils.getMAC().toUpperCase();
         //binding.mac.setText(String.format("MAC: %s", mac));
 
-        binding.scrollTv.setText("Welcome to Tianpu!Welcome to Tianpu!Welcome to Tianpu!");
+        binding.scrollTv.setText("欢迎来到天谱！Welcome to Tianpu!欢迎来到天谱！Welcome to Tianpu!欢迎来到天谱！Welcome to Tianpu!");
         binding.scrollTv.setSelected(true);
 
 
@@ -320,7 +320,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         //注册广播接收器
         myReceiver = new MyReceiver();
         IntentFilter filter = new IntentFilter();
-        filter.addAction("com.zhuchao.android.tianpu.services");
+        filter.addAction("com.zhuchao.android.tpk50ds.services");
         registerReceiver(myReceiver, filter);
 
         mBootCompletedReceiver = new BootCompletedReceiver();
@@ -423,7 +423,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         appListHandler.setAddRemoeveListener(null);
         appListHandler.setOnScanListener(null);
         timeHandler = null;
-        netUtils.Free(null);
+        netUtils.Free();
         unregisterHomeKeyReceiver(this);
         unregisterReceiver(myReceiver);
     }
@@ -534,28 +534,6 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                     Log.i(TAG, "id = 0x" + Integer.toHexString(focusId));
                     break;
             }
-
-            if (keyCode == KeyEvent.KEYCODE_F3) {
-                binding.bgIv5.setImageResource(R.drawable.gq1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                binding.bgIv5.bringToFront();
-                //return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F2) {
-                binding.bgIv5.setImageResource(R.drawable.mn1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                //return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F1) {
-                binding.bgIv5.setImageResource(R.drawable.ly1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                //return true;
-            }
-            if (keyCode == KeyEvent.KEYCODE_F4) {
-                binding.bgIv5.setImageResource(R.drawable.tz1);
-                binding.bgIv5.setVisibility(View.VISIBLE);
-                //return true;
-            }
             return super.onKeyDown(keyCode, event);
         }
     }
@@ -613,6 +591,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
     public void showHomeAppsDialog(int rId) {
         homeAppsDialog = HomeAppsDialog.showHomeAppDialog(MainActivity.this, rId);
     }
+
     public void requestPermition() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -787,6 +766,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
             tvItems[i].setVisibility(View.GONE);
         }
     }
+
     /**
      * 处理点击事件、菜单键
      *
@@ -806,7 +786,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv114.setImageResource(R.drawable.xad);
                 binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIv5.setImageResource(R.drawable.ly);
+                binding.bgIv5.setImageResource(R.drawable.ly1);
                 binding.bluetooth.setVisibility(View.VISIBLE);
                 binding.bluetooth.setImageResource(R.drawable.bluetoothno);
                 bluetooth++;
@@ -824,7 +804,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv111.setImageResource(R.drawable.xaa);
                 binding.bgIv114.setImageResource(R.drawable.xad);
                 binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIv5.setImageResource(R.drawable.tz);
+                binding.bgIv5.setImageResource(R.drawable.tz1);
                 binding.bluetooth.setVisibility(View.GONE);
                 TheLastSourceType = "同轴";
                 binding.bgIcon.setVisibility(View.GONE);
@@ -840,7 +820,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv114.setImageResource(R.drawable.xad);
                 binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIv5.setImageResource(R.drawable.opt);
+                binding.bgIv5.setImageResource(R.drawable.gq1);
                 binding.bluetooth.setVisibility(View.GONE);
                 TheLastSourceType = "光纤";
                 binding.bgIcon.setVisibility(View.GONE);
@@ -855,7 +835,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv113.setImageResource(R.drawable.xac);
                 binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIv5.setImageResource(R.drawable.mn);
+                binding.bgIv5.setImageResource(R.drawable.mn1);
                 binding.bluetooth.setVisibility(View.GONE);
                 TheLastSourceType = "模拟";
                 binding.bgIcon.setVisibility(View.GONE);
@@ -879,7 +859,8 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 launchApp("com.android.music");
                 binding.fl15.requestFocus();
                 break;
-/*            case R.id.fl16:
+                /*
+                case R.id.fl16:
                 //最后一个使用的app
                 //binding.bgIv116.setImageResource(R.drawable.blue6);
                 binding.bgIv111.setImageResource(R.drawable.xaa);
@@ -907,7 +888,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
             case R.id.fl6:
                 //文件管理器
                 switchToOtherChanel("文件管理器");
-                launchApp("com.softwinner.TvdFileManager");
+                launchApp("com.android.rockchip");
                 binding.fl6.requestFocus();
                 break;
             case R.id.fl3:
@@ -920,7 +901,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 if (null != TheLastSourceType && !"".equals(TheLastSourceType)) {
                     if (TheLastSourceType.equals("蓝牙")) {
                         binding.ivFill.setVisibility(View.VISIBLE);
-                        binding.ivFill.setImageResource(R.drawable.bly);
+                        binding.ivFill.setImageResource(R.drawable.ly1);
                         binding.bluetooth.setVisibility(View.VISIBLE);
                         binding.bluetooth.setImageResource(R.drawable.bluetoothno);
                         binding.bgIcon.setVisibility(View.GONE);
@@ -928,20 +909,20 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                         bluetooth++;
                     } else if (TheLastSourceType.equals("同轴")) {
                         binding.ivFill.setVisibility(View.VISIBLE);
-                        binding.ivFill.setImageResource(R.drawable.btz);
+                        binding.ivFill.setImageResource(R.drawable.tz1);
                         binding.bluetooth.setVisibility(View.GONE);
                         binding.bgIcon.setVisibility(View.GONE);
                         onClick(binding.fl12);
                         coppershaft++;
                     } else if (TheLastSourceType.equals("光纤")) {
                         binding.ivFill.setVisibility(View.VISIBLE);
-                        binding.ivFill.setImageResource(R.drawable.bopt);
+                        binding.ivFill.setImageResource(R.drawable.gq1);
                         binding.bluetooth.setVisibility(View.GONE);
                         //onClick(binding.fl13);
                         binding.bgIcon.setVisibility(View.GONE);
                     } else if (TheLastSourceType.equals("模拟")) {
                         binding.ivFill.setVisibility(View.VISIBLE);
-                        binding.ivFill.setImageResource(R.drawable.bmn);
+                        binding.ivFill.setImageResource(R.drawable.mn1);
                         binding.bluetooth.setVisibility(View.GONE);
                         binding.bgIcon.setVisibility(View.GONE);
                         //onClick(binding.fl14);
@@ -1014,9 +995,9 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv114.setImageResource(R.drawable.xad);
                 binding.bgIv115.setImageResource(R.drawable.xae);
                 binding.bgIcon.setVisibility(View.GONE);
-                binding.bgIv5.setImageResource(R.drawable.tz);
+                binding.bgIv5.setImageResource(R.drawable.tz1);
                 //} else
-                binding.ivFill.setImageResource(R.drawable.btz);
+                binding.ivFill.setImageResource(R.drawable.tz1);
 
             } else if (mSerialData.equals("0201050000020004000E7E") || mSerialData.equals("0101050000020004000D7E")) {
                 //蓝牙
@@ -1030,9 +1011,9 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv112.setImageResource(R.drawable.xab);
                 binding.bgIv114.setImageResource(R.drawable.xad);
                 binding.bgIv115.setImageResource(R.drawable.xae);
-                binding.bgIv5.setImageResource(R.drawable.ly);
+                binding.bgIv5.setImageResource(R.drawable.ly1);
                 binding.bgIcon.setVisibility(View.GONE);
-                binding.ivFill.setImageResource(R.drawable.bly);
+                binding.ivFill.setImageResource(R.drawable.ly1);
             } else if (mSerialData.equals("0201050000020080008A7E") || mSerialData.equals("010105000002008000897E")) {
                 pauseSystemMusic();
                 //模拟
@@ -1046,9 +1027,9 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv115.setImageResource(R.drawable.xae);
                 binding.bgIcon.setVisibility(View.GONE);
 
-                binding.bgIv5.setImageResource(R.drawable.mn);
+                binding.bgIv5.setImageResource(R.drawable.mn1);
                 binding.fl14.requestFocus();
-                binding.ivFill.setImageResource(R.drawable.bmn);
+                binding.ivFill.setImageResource(R.drawable.mn1);
                 binding.bluetooth.setVisibility(View.INVISIBLE);
             } else if (mSerialData.equals("0201050000020000020C7E") || mSerialData.equals("0101050000020000020B7E")) {
                 pauseSystemMusic();
@@ -1063,10 +1044,10 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv115.setImageResource(R.drawable.xae);
                 binding.bgIcon.setVisibility(View.GONE);
 
-                binding.bgIv5.setImageResource(R.drawable.opt);
+                binding.bgIv5.setImageResource(R.drawable.gq1);
                 binding.fl13.requestFocus();
                 //}else
-                binding.ivFill.setImageResource(R.drawable.bopt);
+                binding.ivFill.setImageResource(R.drawable.gq1);
                 binding.bluetooth.setVisibility(View.INVISIBLE);
 
             } else if (mSerialData.equals("0201050000020000000A7E") || mSerialData.equals("010105000002000000097E")) {
@@ -1387,21 +1368,6 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         binding.adBg.startAutoPlay();
     }
 
-    public void synUpdateUI() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                binding.netIv.setVisibility(View.VISIBLE);
-
-                if (netUtils.isNetCanConnect())
-                    binding.netIv.setImageResource(R.drawable.net);
-                else
-                    binding.netIv.setImageResource(R.drawable.netno);
-            }
-        });
-
-    }
-
     private void showMACDialog(String type) {
         if (mdialog == null || mdialog.isShowing() != true) {
             mdialog = new Mac_Dialog(this);
@@ -1433,29 +1399,51 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         synUpdateUI();
     }
 
+    public void synUpdateUI() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                binding.netIv.setVisibility(View.VISIBLE);
+
+                if (netUtils.isNetCanConnect()) {
+                    if (netUtils.isWifiConnected()) {
+                        binding.netIv.setImageResource(R.drawable.wifi3);
+                    } else
+                        binding.netIv.setImageResource(R.drawable.net);
+                } else
+                    binding.netIv.setImageResource(R.drawable.netno);
+            }
+        });
+    }
+
     @Override
     public void onWifiLevelChanged(int i) {
         Log.d(TAG, "onWifiLevelChanged>>>>>>>>>>" + i);
-        //if (netUtils.getNetType() != 1) return;
 
-        switch (i) {
-            case 0:
-                binding.netIv.setImageResource(R.drawable.wifi0);
-                break;
-            case 1:
-                binding.netIv.setImageResource(R.drawable.wifi1);
-                break;
-            case 2:
-                binding.netIv.setImageResource(R.drawable.wifi2);
-                break;
-            case 3:
-                binding.netIv.setImageResource(R.drawable.wifi3);
-                break;
-            default: // 2 -> ETH
-                binding.netIv.setImageResource(R.drawable.wifi_out_of_range);
-                break;
-        }
+        if(!netUtils.isWifiConnected()) return;
 
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                switch (i) {
+                    case 0:
+                        binding.netIv.setImageResource(R.drawable.wifi0);
+                        break;
+                    case 1:
+                        binding.netIv.setImageResource(R.drawable.wifi1);
+                        break;
+                    case 2:
+                        binding.netIv.setImageResource(R.drawable.wifi2);
+                        break;
+                    case 3:
+                        binding.netIv.setImageResource(R.drawable.wifi3);
+                        break;
+                    default: // 2 -> ETH
+                        binding.netIv.setImageResource(R.drawable.wifi_out_of_range);
+                        break;
+                }
+            }
+        });
     }
 
     // DMN DeviceModelNumber, // DID :Device ID, // CID: Custorm id, // ip: net ip , // RID: ip region,
@@ -1485,7 +1473,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
 
     private void checkDeviceIsAvailable(String mac) {
         String url = "";
-        if(TextUtils.isEmpty(mac)) return;
+        if (TextUtils.isEmpty(mac)) return;
         if (CustomId != -1) {
             url = host + "jhzBox/box/loadBox.do?cy_brand_id=" + DeviceModelNumber + "&mac=" + mac +
                     "&netCardMac=" + netUtils.getDeviceID() +
@@ -2019,9 +2007,9 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 if (SYSTEM_DIALOG_REASON_HOME_KEY.equals(reason)) {
                     // 短按Home键
                     Log.i(LOG_TAG, "homekey");
+                    binding.ivFill.setVisibility(View.GONE);
                     binding.bgIv5.setImageResource(R.drawable.m);
                     binding.bgIv5.setVisibility(View.VISIBLE);
-                   // binding.ivFill.setVisibility(View.GONE);
                 } else if (SYSTEM_DIALOG_REASON_RECENT_APPS.equals(reason)) {
                     // 长按Home键 或者 activity切换键
                     Log.i(LOG_TAG, "long press home key or activity switch");
