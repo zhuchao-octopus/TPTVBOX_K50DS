@@ -41,8 +41,7 @@ public class AppsActivity extends Activity {
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_my_application);
         String pageTypeStr = getIntent().getStringExtra("type");
-        pageType = TextUtils.isEmpty(pageTypeStr) ?
-                PageType.MY_APP_TYPE : PageType.valueOf(pageTypeStr);
+        pageType = TextUtils.isEmpty(pageTypeStr) ?  PageType.MY_APP_TYPE : PageType.valueOf(pageTypeStr);
         appListHandler = new AppListHandler(AppsActivity.this, pageType);
         appAdapter = new AppAdapter(this);
         appListHandler.setOnScanListener(new AppListHandler.OnScanListener() {

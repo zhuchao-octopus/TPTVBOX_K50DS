@@ -70,9 +70,6 @@ public class iflytekService extends AppService {
 
 
 
-
-
-
     @Override
     protected void onInit() {
         UpLoadVoiceCommand();

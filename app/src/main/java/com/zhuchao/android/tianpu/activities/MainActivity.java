@@ -523,7 +523,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                     break;
                 case KeyEvent.KEYCODE_MENU:
                 case KeyEvent.KEYCODE_F11:    //天普遥控器的设置键
-                    openSettings();
+                    //openSettings();
                     break;
                 case KeyEvent.KEYCODE_G:      //天普遥控器的USB键
                     launchApp("com.android.music");
@@ -983,7 +983,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
     Runnable HandleSerialPortrunnable = new Runnable() {
         @Override
         public void run() {
-            if (mSerialData.equals("0201050000020000010B7E") || mSerialData.equals("0101050000020000010A7E")) {
+            if (mSerialData.equals("0201050000020000020C7E") || mSerialData.equals("0101050000020000010A7E")) {
                 pauseSystemMusic();
                 //同轴
                 TheLastSourceType = "同轴";
@@ -1033,7 +1033,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.fl14.requestFocus();
                 binding.ivFill.setImageResource(R.drawable.mn1);
                 binding.bluetooth.setVisibility(View.INVISIBLE);
-            } else if (mSerialData.equals("0201050000020000020C7E") || mSerialData.equals("0101050000020000020B7E")) {
+            } else if (mSerialData.equals("0201050000020000010B7E") || mSerialData.equals("0101050000020000020B7E")) {
                 pauseSystemMusic();
                 //光纤
                 TheLastSourceType = "光纤";

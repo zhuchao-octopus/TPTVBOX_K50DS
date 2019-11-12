@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="fitXY"
-        android:src="@drawable/bbbg" />
+        android:src="@drawable/bj" />
 
     <RelativeLayout
         android:id="@+id/top_info"
@@ -31,7 +31,7 @@
             android:layout_marginTop="35.0dip"
             android:focusable="false"
             android:focusableInTouchMode="true"
-            android:src="@drawable/bd" />
+            android:src="@drawable/logo" />
 
         <FrameLayout
             android:id="@+id/scroll_root"
@@ -122,7 +122,7 @@
             android:layout_marginRight="10dp"
             android:layout_toLeftOf="@id/net_iv"
             android:src="@drawable/cell4"
-            android:visibility="visible" />
+            android:visibility="gone" />
 
         <ImageView
             android:id="@+id/net_iv"
@@ -230,7 +230,7 @@
                 android:layout_width="331dp"
                 android:layout_height="160dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/tpqmkg" />
+                android:src="@drawable/yt" />
 
             <ProgressBar
                 android:id="@+id/progress_bar1"
@@ -286,7 +286,7 @@
             <ImageView
                 android:layout_width="160dp"
                 android:layout_height="140dp"
-                android:background="@drawable/qq" />
+                android:background="@drawable/f" />
 
             <ProgressBar
                 android:id="@+id/progress_bar9"
@@ -324,8 +324,8 @@
             <ImageView
                 android:id="@+id/bg_iv5"
                 android:layout_width="498dp"
-                android:layout_height="276dp"
-                android:src="@drawable/bb2" />
+                android:layout_height="330dp"
+                android:src="@drawable/m" />
 
             <ImageView
                 android:id="@+id/bg_icon"
@@ -351,7 +351,8 @@
             android:clipToPadding="false"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusRight="@id/fl14">
+            android:nextFocusRight="@id/fl14"
+            android:visibility="gone">
 
             <com.facebook.drawee.view.SimpleDraweeView
                 android:id="@+id/bg_iv111"
@@ -360,6 +361,7 @@
                 android:clickable="false"
                 android:focusableInTouchMode="false"
                 android:scaleType="fitXY"
+                android:visibility="gone"
                 fresco:failureImage="@drawable/failedbg1"
                 fresco:failureImageScaleType="fitXY"
                 fresco:placeholderImage="@drawable/xaa"
@@ -432,7 +434,8 @@
             android:clipToPadding="false"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:nextFocusRight="@id/fl15">
+            android:nextFocusRight="@id/fl15"
+            android:visibility="gone">
 
             <View
                 android:layout_width="1dp"
@@ -446,6 +449,7 @@
                 android:layout_marginLeft="1dp"
                 android:clickable="false"
                 android:scaleType="fitXY"
+                android:visibility="gone"
                 fresco:failureImage="@drawable/failedbg1"
                 fresco:failureImageScaleType="fitXY"
                 fresco:placeholderImage="@drawable/xad"
@@ -465,7 +469,8 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:focusable="true"
-            android:focusableInTouchMode="true">
+            android:focusableInTouchMode="true"
+            android:visibility="gone">
 
             <View
                 android:layout_width="1dp"
@@ -479,6 +484,7 @@
                 android:layout_marginLeft="1dp"
                 android:clickable="false"
                 android:scaleType="fitXY"
+                android:visibility="gone"
                 fresco:failureImage="@drawable/failedbg1"
                 fresco:failureImageScaleType="fitXY"
                 fresco:placeholderImage="@drawable/xae"
@@ -543,7 +549,7 @@
                 android:layout_width="160.0dip"
                 android:layout_height="140.0dip"
                 android:scaleType="fitXY"
-                android:src="@drawable/dsj" />
+                android:src="@drawable/pro" />
 
             <TextView
                 android:id="@+id/tv_state8"
@@ -758,7 +764,7 @@
                 android:layout_width="160dp"
                 android:layout_height="160dp"
                 android:scaleType="fitXY"
-                android:src="@drawable/tptxsp" />
+                android:src="@drawable/gp" />
 
             <ProgressBar
                 android:id="@+id/progress_bar2"
@@ -819,7 +825,7 @@
                 android:id="@+id/ad_bg"
                 android:layout_width="307dp"
                 android:layout_height="480dp"
-                android:background="@drawable/bda"
+                android:background="@drawable/gg"
                 android:focusable="false"
                 android:focusableInTouchMode="false"
                 fresco:AutoPlayTime="10000"

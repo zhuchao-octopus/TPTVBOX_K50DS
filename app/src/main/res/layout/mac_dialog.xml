@@ -16,7 +16,7 @@
             android:padding="25dp"
             android:text="@string/device_not_activated"
             android:textColor="#000000"
-            android:textSize="35sp" />
+            android:textSize="32sp" />
 
         <TextView
             android:id="@+id/tv_middles"
@@ -27,7 +27,7 @@
             android:padding="30dp"
             android:text="mac"
             android:textColor="#ffffff"
-            android:textSize="35sp" />
+            android:textSize="32sp" />
 
         <TextView
             android:id="@+id/tv_bottoms"
@@ -38,7 +38,7 @@
             android:padding="25dp"
             android:text="@string/please_contact_the_manufacturer"
             android:textColor="#ffffff"
-            android:textSize="35sp" />
+            android:textSize="32sp" />
     </LinearLayout>
 
 </layout>

@@ -6,7 +6,7 @@
         android:id="@+id/layout"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:background="@drawable/bgg"
+        android:background="@drawable/bj"
         android:orientation="vertical">
 
         <RelativeLayout
@@ -48,17 +48,18 @@
                 android:id="@+id/notice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
                 android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
                 android:layout_marginBottom="10.0dip"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:visibility="invisible">
 
                 <ImageView
                     android:id="@+id/ok_image"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignBottom="@+id/ok_text"
                     android:layout_alignTop="@+id/ok_text"
+                    android:layout_alignBottom="@+id/ok_text"
                     android:layout_centerVertical="true"
                     android:scaleType="centerCrop"
                     android:src="@drawable/ok" />

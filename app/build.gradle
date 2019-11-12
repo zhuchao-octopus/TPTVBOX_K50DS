@@ -57,7 +57,7 @@ android {
         //    path "src/main/cpp/CMakeLists.txt"
         //}
         ndkBuild {
-            // path 'src/main/jni/Android.mk'
+            path 'src/main/jni/Android.mk'
         }
     }
     compileOptions {
