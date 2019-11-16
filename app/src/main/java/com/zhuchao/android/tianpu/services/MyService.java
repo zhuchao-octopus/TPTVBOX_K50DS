@@ -2,8 +2,6 @@ package com.zhuchao.android.tianpu.services;
 
 import android.app.ActivityManager;
 import android.app.Service;
-import android.app.usage.UsageStats;
-import android.app.usage.UsageStatsManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -16,24 +14,22 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-
+import android.os.SystemProperties;
 import android.util.Log;
 import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
+import com.zhuchao.android.libfilemanager.devices.MySerialPort;
 import com.zhuchao.android.tianpu.R;
-import com.zhuchao.android.tianpu.utils.TypeTool;
 import com.zhuchao.android.tianpu.utils.ForegroundAppUtil;
-import com.zhuchao.android.tianpu.utils.MySerialPort;
+import com.zhuchao.android.tianpu.utils.TypeTool;
 import com.zhuchao.android.tianpu.views.dialogs.Mac_Dialog;
 import com.zhuchao.android.tianpu.views.dialogs.MusicDialog;
 import com.zhuchao.android.tianpu.views.dialogs.Sound_Effect_Dialog;
 import com.zhuchao.android.video.OMedia;
 
 import java.util.List;
-import java.util.SortedMap;
-import java.util.TreeMap;
 
 public class MyService extends Service {
     private static int MicVolume = 0;
@@ -42,7 +38,7 @@ public class MyService extends Service {
     private final String TAG = "MyService";
     private MySerialPort MyPortDevice = new MySerialPort(this);
     private byte[] SerialPortReceiveBuffer;
-    private String lo;
+    private String data;
     private Handler SerialPortReceivehandler;
     private MusicDialog dialog;
     private Sound_Effect_Dialog sdialog;
@@ -55,7 +51,7 @@ public class MyService extends Service {
     private byte tbb[] = {0, 0, 0, 0};
     private byte[] SetMusicVolume = {0x02, 0x01, 0x02, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0b, 0x7E};//设置音乐音量  K70//
     private byte[] SetMusicVolumeK50 = {0x01, 0x01, 0x02, 0x00, 0x00, 0x02, 0x00, 0x04, 0x00, 0x0a, 0x7E};//设置音乐音量  K50
-    private byte[] LastChanelApp = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//最后使用的app  K50
+    private byte[] I2SChanelApp = {0x01, 0x01, 0x05, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//最后使用的app  K50
     private byte[] QueryStateK50 = {0x01, 0x01, 0x06, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x09, 0x7E};//初始状态  K50
     private boolean isCharging = false;
     private MediaPlayer mMediaPlayer = null;
@@ -102,7 +98,7 @@ public class MyService extends Service {
         };
 
         boolean bRet = MyPortDevice.openPort("/dev/ttyS0", 9600, true);
-       // boolean bRet = MyPortDevice.openPort("/dev/ttyS1", 9600, true);
+        //boolean bRet = MyPortDevice.openPort("/dev/ttyS1", 9600, true);
 
         if (bRet == false) {
             Log.e("Service", "onCreate：串口打开失败！！！！！");
@@ -110,10 +106,9 @@ public class MyService extends Service {
             Log.e("Service", "onCreate：串口打开成功！！！！！");
             CheckSerialPortEvent();
 
-            sendCommand(LastChanelApp);
+            sendCommand(I2SChanelApp);
             sendCommand(QueryStateK50);
         }
-
     }
 
     public void sendCommand(byte[] bytes) {
@@ -196,10 +191,10 @@ public class MyService extends Service {
     };
 
     private void playMusic(final Context c, final int resID) {
-        String suri = "android.resource://" + this.getApplicationContext().getPackageName() + "/" +resID;
+        String suri = "android.resource://" + this.getApplicationContext().getPackageName() + "/" + resID;
         //Uri uri = Uri.parse(suri);
         AssetFileDescriptor afd = getResources().openRawResourceFd(resID);
-        OMedia video = new OMedia(suri,null,null);
+        OMedia video = new OMedia(suri, null, null);
         video.with(this.getApplicationContext());
         video.getmOPlayer().setSourceInfo(afd);
         video.playInto(null);
@@ -211,9 +206,8 @@ public class MyService extends Service {
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {
-
-                    if (lo.length() >= 16) {
-                        VolumeChange(lo);
+                    if (data.length() >= 16) {
+                        DataChange(data);
                     }
                 }
             };
@@ -221,7 +215,7 @@ public class MyService extends Service {
             @Override
             public void onDataReceive(Context context, byte[] buffer, int size) {
                 SerialPortReceiveBuffer = buffer;
-                lo = TypeTool.ByteArrToHexStr(SerialPortReceiveBuffer, 0, size);
+                data = TypeTool.ByteArrToHexStr(SerialPortReceiveBuffer, 0, size);
 
                 if (buffer[2] == 0x06) {
                     MusicVolume = buffer[7];
@@ -271,7 +265,7 @@ public class MyService extends Service {
                     int v = TypeTool.HexToInt(TypeTool.Byte2Hex(buffer[7]));
                     intent.putExtra("value", v);
                     sendBroadcast(intent);
-                    Log.i("onDataReceive", lo);
+                    Log.i("onDataReceive", data);
                     if ((v <= 10) && (!isCharging))
                         playMusic(context, R.raw.charge);
                     return;
@@ -279,30 +273,29 @@ public class MyService extends Service {
 
                 if (buffer[2] == 0x25) {
                     int v = TypeTool.HexToInt(TypeTool.Byte2Hex(buffer[7]));
-                    //SystemProperties.set("ro.dsp.version", String.valueOf(v));
+                    SystemProperties.set("ro.dsp.version", String.valueOf(v));
                     //System.setProperty("ro.dsp.version", String.valueOf(v));
                     Log.i(TAG, "SystemProperties.set(\"ro.dsp.version\", String.valueOf(v));v=" + v);
                     return;
                 }
 
 
-
                 if (null != SerialPortReceivehandler) {
                     SerialPortReceivehandler.post(runnable);
                 } else {
-                    Log.i("onDataReceive", "SerialPortReceivehandler=null");
+                    Log.i("onDataReceive", "Data lost");
                 }
             }
 
         });
     }
 
-    private void VolumeChange(String volume) {
+    private void DataChange(String data) {
 
-        String type = volume.substring(4, 8);
-        String value = volume.substring(12, 16);
+        String type = data.substring(4, 8);
+        String value = data.substring(12, 16);
         int v = Integer.valueOf(value, 16);
-        Log.i("VolumeChange", "type=" + type + "   lo=" + lo + "   v=" + v);
+        Log.d("DataChange", "type=" + type + ",data=" + this.data + ",v=" + v);
         if (type.equals("0200")) {
             //音乐音量
             if ((v >= 0) && (v <= 60)) {
@@ -319,27 +312,28 @@ public class MyService extends Service {
             //音效
             switch (v) {
                 case 1:
-                    showEffectDialog3(R.drawable.u20, v, "1 主持", type);
+                    showEffectDialog3(R.drawable.u20, v, "1", type);
                     break;
                 case 2:
-                    showEffectDialog3(R.drawable.u20, v, "2 唱将", type);
+                    showEffectDialog3(R.drawable.u20, v, "2", type);
                     break;
                 case 3:
-                    showEffectDialog3(R.drawable.u20, v, "3 喊麦", type);
+                    showEffectDialog3(R.drawable.u20, v, "3", type);
                     break;
                 case 4:
-                    showEffectDialog3(R.drawable.u20, v, "4 专业", type);
+                    showEffectDialog3(R.drawable.u20, v, "4", type);
                     break;
                 case 5:
-                    showEffectDialog3(R.drawable.u20, v, "5 演唱", type);
+                    showEffectDialog3(R.drawable.u20, v, "5", type);
+                    break;
+                case 6:
+                    showEffectDialog3(R.drawable.u20, v, "6", type);
                     break;
             }
 
-        } else if (type.equals("0500"))
-        {
+        } else if (type.equals("0500")) {
             if (actionCallback != null) {
-                //if(IsTopActivtyFromLolipopOnwards("com.zhuchao.android.tianpu")==false)
-                {
+                if (isTopActivity("com.zhuchao.android.tianpu") == false && !data.equals("010105000002000000097E")) {
                     Intent i = new Intent();
                     i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     ComponentName cn = new ComponentName("com.zhuchao.android.tianpu", "com.zhuchao.android.tianpu.activities.MainActivity");
@@ -347,7 +341,7 @@ public class MyService extends Service {
 
                     startActivity(i);
                 }
-                actionCallback.onDataChange(lo);
+                actionCallback.onDataChange(this.data);
             }
         } else if (type.equals("0700")) {
             //吉他
@@ -360,18 +354,6 @@ public class MyService extends Service {
             showVolumeDialog2(R.drawable.zb, v, type);
         }
 
-    }
-    private boolean isTopActivity(String packageName) {
-        ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        List<ActivityManager.RunningTaskInfo> tasksInfo = activityManager.getRunningTasks(5);
-        if (tasksInfo.size() > 0) {
-            //应用程序位于堆栈的顶层
-            String str = tasksInfo.get(0).topActivity.getPackageName();
-            if (packageName.equals(str)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private void showVolumeDialog(int direction, String type) {
@@ -433,21 +415,21 @@ public class MyService extends Service {
         //Log.e("MyPortDevice", com.zhuchao.android.tianpu.utils.TypeTool.ByteArrToHexStr(bytes, 0, bytes.length));
     }
 
-    public Boolean IsTopActivtyFromLolipopOnwards(String PackageName) {
-        String topPackageName;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            UsageStatsManager mUsageStatsManager = (UsageStatsManager) getSystemService(Context.USAGE_STATS_SERVICE);
-            long time = System.currentTimeMillis();
-            List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000 * 10, time);
-            if (stats != null) {
-                SortedMap<Long, UsageStats> mySortedMap = new TreeMap<Long, UsageStats>();
-                for (UsageStats usageStats : stats) {
-                    mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
-                }
-                if (mySortedMap != null && !mySortedMap.isEmpty()) {
-                    topPackageName = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
-                    Log.e("TopPackage Name", topPackageName);
-                    if (topPackageName.equals(PackageName)) return true;
+    private boolean isTopActivity(String packageName) {
+
+        if (android.os.Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP) {
+            String strt = ForegroundAppUtil.getForegroundActivityName(getApplicationContext());
+            if (packageName.equals(strt))
+                return true;
+
+        } else {
+            ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            List<ActivityManager.RunningTaskInfo> tasksInfo = activityManager.getRunningTasks(5);
+            if (tasksInfo.size() > 0) {
+                //应用程序位于堆栈的顶层
+                String str = tasksInfo.get(0).topActivity.getPackageName();
+                if (packageName.contains(str)) {
+                    return true;
                 }
             }
         }
@@ -466,7 +448,6 @@ public class MyService extends Service {
             filter.addAction("com.iflytek.xiri2.hal.volume");
             filter.addAction("com.iflytek.xiri2.hal.iflytekService");
             registerReceiver(receiver, filter);
-
             return MyService.this;
         }
 

@@ -11,4 +11,7 @@ public interface PackageName {
     String hdp = "com.rockchips.dlna";
 
     String dbMarket = "com.dangbeimarket";
+
+    String lebo = "com.hpplay.happycas";
+    String feishi = "";
 }

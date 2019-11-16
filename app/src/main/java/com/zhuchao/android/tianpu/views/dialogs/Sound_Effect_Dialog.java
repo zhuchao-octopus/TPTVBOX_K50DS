@@ -10,8 +10,8 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.zhuchao.android.tianpu.R;
 import com.zhuchao.android.tianpu.activities.MainActivity;
+import com.zhuchao.android.tianpu.R;
 
 /**
  * 菜单键的弹窗

@@ -2,7 +2,9 @@ package com.zhuchao.android.tianpu.views.dialogs;
 
 import android.app.Dialog;
 import android.content.Context;
+import androidx.databinding.DataBindingUtil;
 import android.os.Bundle;
+import androidx.annotation.NonNull;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -13,15 +15,13 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 
-import androidx.annotation.NonNull;
-import androidx.databinding.DataBindingUtil;
-
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
+import com.zhuchao.android.libfilemanager.bean.AppInfor;
 import com.zhuchao.android.tianpu.R;
 import com.zhuchao.android.tianpu.activities.MainActivity;
 import com.zhuchao.android.tianpu.bridge.SelEffectBridge;
-import com.zhuchao.android.tianpu.data.App;
+
 import com.zhuchao.android.tianpu.databinding.ActivityPullBinding;
 import com.zhuchao.android.tianpu.utils.MyApplication;
 
@@ -51,7 +51,7 @@ public class BottomAppDialog extends Dialog implements View.OnClickListener, Vie
                 .error(R.drawable.pulldown_add)
                 .placeholder(R.drawable.pulldown_add);
 
-        ((MainActivity) context).scanBottom();
+        //((MainActivity) context).scanBottom();
 
         selEffectBridge = (SelEffectBridge) binding.pullMianup.getEffectBridge();
         selEffectBridge.setUpRectResource(R.drawable.home_sel_btn0);
@@ -110,7 +110,7 @@ public class BottomAppDialog extends Dialog implements View.OnClickListener, Vie
         }
     };
 
-    public void updateBottom(int vId, App app) {
+    public void updateBottom(int vId, AppInfor app) {
         Log.d(TAG, String.format("updateBottom %d %s", vId, app));
         switch (vId) {
             case R.id.pull_tag_9301: {
@@ -180,7 +180,7 @@ public class BottomAppDialog extends Dialog implements View.OnClickListener, Vie
         }
     }
 
-    private void loadImage(ImageView imageView, App app) {
+    private void loadImage(ImageView imageView, AppInfor app) {
         imageView.setTag(null);
         Glide.with(context).load(app.getIcon()).apply(glideOptions)
                 .into(imageView);
@@ -225,7 +225,7 @@ public class BottomAppDialog extends Dialog implements View.OnClickListener, Vie
         int vId = v.getId();
         Object tag = v.getTag();
         if (tag == null || !isClick) {
-            ((MainActivity) context).lunchHomeAppDialog(tag, vId);
+            ((MainActivity) context).ShowHotAppDialog(tag, vId);
         } else {
             ((MainActivity) context).launchApp(tag.toString());
         }

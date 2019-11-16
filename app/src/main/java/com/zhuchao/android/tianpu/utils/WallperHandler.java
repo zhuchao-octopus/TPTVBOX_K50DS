@@ -1,9 +1,16 @@
 package com.zhuchao.android.tianpu.utils;
 
+import android.app.Activity;
 import android.content.Context;
+import android.text.TextUtils;
+import android.util.Log;
 
 import com.zhuchao.android.tianpu.R;
 
+import com.zhuchao.android.tianpu.R;
+
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 

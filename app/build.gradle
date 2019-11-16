@@ -2,23 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'org.greenrobot.greendao' // apply plugin
 
 android {
-    //signingConfigs {
-    //    release {
-    //        keyAlias 'tp'
-    //        keyPassword 'tp7777777'
-    //        storeFile file('/tp77.jks')
-    //        storePassword 'tp7777777'
-    //    }
-    //}
 
     compileSdkVersion 28
 
     applicationVariants.all {
         variant ->
             variant.outputs.all {
-                //def fileName = "TPDYX0${defaultConfig.versionName}.apk"
-                //def fileName = "TPHWBD${defaultConfig.versionName}.apk"
-                //def fileName = "TPHWM0${defaultConfig.versionName}.apk"
                 def fileName = "TP0BDK50DS_v${defaultConfig.versionName}_${releaseTime()}.apk"
                 outputFileName = fileName
             }
@@ -29,8 +18,8 @@ android {
         applicationId "com.zhuchao.android.tianpu"
         minSdkVersion 24
         targetSdkVersion 28
-        versionCode 70
-        versionName "7.0"
+        versionCode 71
+        versionName "7.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
             moduleName "myserialport"
@@ -56,9 +45,6 @@ android {
         //    version '3.10.2'
         //    path "src/main/cpp/CMakeLists.txt"
         //}
-        ndkBuild {
-            path 'src/main/jni/Android.mk'
-        }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -84,15 +70,10 @@ greendao {
 }
 
 
-task copyJniLibs(type: Copy) {
-    from fileTree(dir: file('build/intermediates/ndkbuild/debug/obj/local'), include: '*/*.so')
-    into file('src/main/jniLibs')
-}
-
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    //implementation files('libs/framwork_all.jar')
+    implementation files('libs/framwork_all.jar')
     //implementation files('libs/jackson-core-2.7.9.jar')
 
     implementation 'androidx.appcompat:appcompat:1.0.0'
@@ -124,6 +105,6 @@ dependencies {
     implementation 'com.zhuchao.android:libPlaySession:+@aar'
     implementation 'com.zhuchao.android:libVideo:+@aar'
     implementation 'com.zhuchao.android:libCallbackEvent:+@aar'
-    implementation 'com.zhuchao.android:libFileManager:+@aar'
+    implementation 'com.zhuchao.android:libFilesManager:+@aar'
     implementation 'com.zhuchao.android:libDataBaseUtil:+@aar'
 }

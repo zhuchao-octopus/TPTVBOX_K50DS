@@ -62,7 +62,7 @@ public class ForegroundAppUtil {
     private static UsageStats getForegroundUsageStats(Context context, long startTime, long endTime)
     {
         UsageStats usageStatsResult = null;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             List<UsageStats> usageStatses = getUsageStatsList(context, startTime, endTime);
             if (usageStatses == null || usageStatses.isEmpty()) return null;
             for (UsageStats usageStats : usageStatses) {
@@ -79,7 +79,7 @@ public class ForegroundAppUtil {
      */
     public static UsageStats getCurrentUsageStats(Context context, long startTime, long endTime)
     {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             List<UsageStats> usageStatses = getUsageStatsList(context, startTime, endTime);
             if (usageStatses == null || usageStatses.isEmpty()) return null;
             for (UsageStats usageStats : usageStatses) {
@@ -95,7 +95,7 @@ public class ForegroundAppUtil {
      * 通过UsageStatsManager获取List<UsageStats>集合
      */
     public static List<UsageStats> getUsageStatsList(Context context, long startTime, long endTime) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             UsageStatsManager manager = (UsageStatsManager) context.getApplicationContext().getSystemService(Context.USAGE_STATS_SERVICE);
             //UsageStatsManager.INTERVAL_WEEKLY，UsageStatsManager的参数定义了5个，具体查阅源码
             List<UsageStats> usageStatses = manager.queryUsageStats(UsageStatsManager.INTERVAL_BEST, startTime, endTime);

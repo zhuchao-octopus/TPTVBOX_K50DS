@@ -1,5 +1,7 @@
 package com.zhuchao.android.tianpu.utils;
 
+import android.util.Log;
+
 /**
  * Created by WangChaowei on 2017/12/11.
  */

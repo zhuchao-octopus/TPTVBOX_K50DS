@@ -25,12 +25,28 @@ public class MyApplication extends Application {
                 .setMaxCacheSize(150 * ByteConstants.MB)
                 .setMaxCacheSizeOnLowDiskSpace(100 * ByteConstants.MB)
                 .setMaxCacheSizeOnVeryLowDiskSpace(30 * ByteConstants.MB)
+//                .setBaseDirectoryName(getCacheDir().getAbsolutePath())
+//                .setBaseDirectoryPath(getCacheDir())
+//                .setBaseDirectoryName(getExternalCacheDir().getAbsolutePath())
                 .setBaseDirectoryPath(getExternalCacheDir())
                 .build();
         ImagePipelineConfig config = ImagePipelineConfig.newBuilder(context)
+//                .setBitmapMemoryCacheParamsSupplier(bitmapCacheParamsSupplier)
+//                .setCacheKeyFactory(cacheKeyFactory)
+//                .setDownsampleEnabled(true)
+//                .setWebpSupportEnabled(true)
+//                .setEncodedMemoryCacheParamsSupplier(encodedCacheParamsSupplier)
+//                .setExecutorSupplier(executorSupplier)
+//                .setImageCacheStatsTracker(imageCacheStatsTracker)
                 .setMainDiskCacheConfig(diskCacheConfig)
+//                .setMemoryTrimmableRegistry(memoryTrimmableRegistry)
+//                .setNetworkFetchProducer(networkFetchProducer)
+//                .setPoolFactory(poolFactory)
+//                .setProgressiveJpegConfig(progressiveJpegConfig)
+//                .setRequestListeners(requestListeners)
+//                .setSmallImageDiskCacheConfig(smallImageDiskCacheConfig)
                 .build();
-        Fresco.initialize(this, config);
+        Fresco.initialize(this,config);
     }
 
     public static Context ctx() {
