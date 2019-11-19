@@ -194,10 +194,8 @@ public class MyService extends Service {
         String suri = "android.resource://" + this.getApplicationContext().getPackageName() + "/" + resID;
         //Uri uri = Uri.parse(suri);
         AssetFileDescriptor afd = getResources().openRawResourceFd(resID);
-        OMedia video = new OMedia(suri, null, null);
-        video.with(this.getApplicationContext());
-        video.getmOPlayer().setSourceInfo(afd);
-        video.playInto(null);
+        OMedia audio = new OMedia(suri);
+        audio.with(this.getApplicationContext()).play(afd);
     }
 
     private void CheckSerialPortEvent() {
