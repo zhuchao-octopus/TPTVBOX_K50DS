@@ -100,10 +100,8 @@ public class MyService extends Service {
         boolean bRet = MyPortDevice.openPort("/dev/ttyS0", 9600, true);
         //boolean bRet = MyPortDevice.openPort("/dev/ttyS1", 9600, true);
 
-        if (bRet == false) {
-            Log.e("Service", "onCreate：串口打开失败！！！！！");
-        } else {
-            Log.e("Service", "onCreate：串口打开成功！！！！！");
+        if (bRet) {
+            //Log.e("Service", "onCreate：串口打开成功！！！！！");
             CheckSerialPortEvent();
 
             sendCommand(I2SChanelApp);

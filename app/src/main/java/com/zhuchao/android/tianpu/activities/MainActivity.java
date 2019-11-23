@@ -21,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.SystemProperties;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
@@ -361,6 +362,19 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                                             binding.tvAdd1.setText(appIn.getName());
                                             binding.fl2.setTag(appIn.getPackageName());
                                         }
+                                    }
+                                    String ss =SystemProperties.get("com.zhuchao.android.ss");
+                                    if (ss.equals("132")) { //模拟
+                                        binding.bgIv5.setImageResource(R.drawable.mn1);
+                                    }
+                                    if (ss.equals("131")) {//蓝牙
+                                        binding.bgIv5.setImageResource(R.drawable.ly1);
+                                    }
+                                    if (ss.equals("133")) {//光纤
+                                        binding.bgIv5.setImageResource(R.drawable.gq1);
+                                    }
+                                    if (ss.equals("134")){//同轴
+                                        binding.bgIv5.setImageResource(R.drawable.tz1);
                                     }
                                     break;
                                 }
@@ -1108,7 +1122,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
             @Override
             public void onDataChange(String data) {
                 mSerialCommand = data;
-                Log.i("Callback.onDataChange", "data=" + data);
+                Log.i(TAG,"MyService.onDataChange data=" + data);
                 if (null != SerialPortReceiveHandler) {
                     SerialPortReceiveHandler.post(HandleSerialPortrunnable);
                 } else {
