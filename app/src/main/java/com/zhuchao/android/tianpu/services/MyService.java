@@ -32,10 +32,10 @@ import com.zhuchao.android.video.OMedia;
 import java.util.List;
 
 public class MyService extends Service {
+    private final String TAG = "MyService";
     private static int MicVolume = 0;
     private static int MusicVolume = 0;
     private static String mTopPackageName;
-    private final String TAG = "MyService";
     private MySerialPort MyPortDevice = new MySerialPort(this);
     private byte[] SerialPortReceiveBuffer;
     private String data;
@@ -114,7 +114,7 @@ public class MyService extends Service {
     public void sendCommand(byte[] bytes) {
         try {
             MyPortDevice.sendBuffer(bytes);
-            Log.i("MyService.发送数据", TypeTool.ByteArrToHexStr(bytes, 0, bytes.length));
+            Log.i(TAG,"发送数据>>>>"+ TypeTool.ByteArrToHexStr(bytes, 0, bytes.length));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -214,6 +214,7 @@ public class MyService extends Service {
             public void onDataReceive(Context context, byte[] buffer, int size) {
                 SerialPortReceiveBuffer = buffer;
                 data = TypeTool.ByteArrToHexStr(SerialPortReceiveBuffer, 0, size);
+                Log.i(TAG,"onDataReceive:"+ data);
 
                 if (buffer[2] == 0x06) {
                     MusicVolume = buffer[7];
@@ -293,7 +294,7 @@ public class MyService extends Service {
         String type = data.substring(4, 8);
         String value = data.substring(12, 16);
         int v = Integer.valueOf(value, 16);
-        Log.d("DataChange", "type=" + type + ",data=" + this.data + ",v=" + v);
+        Log.i(TAG,"DataChange type=" + type + ",data=" + this.data + ",v=" + v);
         if (type.equals("0200")) {
             //音乐音量
             if ((v >= 0) && (v <= 60)) {
@@ -331,7 +332,8 @@ public class MyService extends Service {
 
         } else if (type.equals("0500")) {
             if (actionCallback != null) {
-                if (isTopActivity("com.zhuchao.android.tianpu") == false && !data.equals("010105000002000000097E")) {
+                if (isTopActivity("com.zhuchao.android.tianpu") == false && !data.equals("010105000002000000097E")
+                        && !data.equals("0201050000020005000F7E")) {
                     Intent i = new Intent();
                     i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     ComponentName cn = new ComponentName("com.zhuchao.android.tianpu", "com.zhuchao.android.tianpu.activities.MainActivity");
