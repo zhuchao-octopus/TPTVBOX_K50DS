@@ -20,6 +20,7 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS"/>
     <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"/>
     <uses-permission android:name="android.permission.SET_TIME"/>
+	<uses-permission android:name="android.permission.SET_TIME_ZONE" />
 
     <!-- 静默安装所需权限,如与Manifest报错，请运行Project->clean -->
     <!-- 允许程序安装应用 -->

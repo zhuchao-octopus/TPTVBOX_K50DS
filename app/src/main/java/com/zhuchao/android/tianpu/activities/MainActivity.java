@@ -174,8 +174,8 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
     private NetUtils netUtils = null;
     private MyAppsManager myAppsManager = null;
 
-    private int mMainLayoutHeight = 0;
-
+    //private int mMainLayoutHeight = 0;
+    //private boolean HomeKeyPress = false;
     //private int mNavigateStatus = 0;
     public static void sendKeyEvent(final int KeyCode) {
         new Thread() {     //不可在主线程中调用
@@ -302,6 +302,9 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
 
         requestPermition();
         setupItemBottomTag();
+        //TimeDateUtils.setAutoTimeZone(MainActivity.this, 1);
+        //TimeDateUtils.setAutoDateTime(MainActivity.this, 1);
+        //TimeDateUtils.setTimeZone(MainActivity.this, "Asia/Kuala_Lumpur");
     }
 
     @Override
@@ -354,37 +357,57 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                                 root.offsetDescendantRectToMyCoords(v, rect);
                                 if (rect.left > 0 && rect.right > 0) {
                                     setFocuseEffect(v);
-
-                                    String myapp = SPreference.getSharedPreferences(mContext, "MyAppInfors", "MyAppInfors");
-                                    if(!TextUtils.isEmpty(myapp))
-                                    {
-                                        AppInfor appIn = myAppsManager.getAppInfor(myapp);
-                                        if(appIn != null) {
-                                            GlideMgr.loadNormalDrawableImg(MainActivity.this, appIn.getIcon(), binding.ivAdd1);
-                                            binding.tvAdd1.setText(appIn.getName());
-                                            binding.fl2.setTag(appIn.getPackageName());
-                                        }
-                                    }
-                                    String ss =SystemProperties.get("com.zhuchao.android.ss");
-                                    if (ss.equals("132")) { //模拟
-                                        binding.bgIv5.setImageResource(R.drawable.mn1);
-                                    }
-                                    if (ss.equals("131")) {//蓝牙
-                                        binding.bgIv5.setImageResource(R.drawable.ly1);
-                                    }
-                                    if (ss.equals("133")) {//光纤
-                                        binding.bgIv5.setImageResource(R.drawable.gq1);
-                                    }
-                                    if (ss.equals("134")){//同轴
-                                        binding.bgIv5.setImageResource(R.drawable.tz1);
-                                    }
-
-                                    TimeDateUtils.setAutoTimeZone(MainActivity.this,1);
-                                    TimeDateUtils.setTimeZone(MainActivity.this,"Asia/Shanghai");
                                     break;
                                 }
-
                             }
+                        }
+                    }
+                });
+            }
+        }.start();
+
+        new Thread() {
+            @Override
+            public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        String pkg = SPreference.getSharedPreferences(mContext, "MyAppInfors", "MyAppInfors");
+
+                        if (!TextUtils.isEmpty(pkg)) {
+                            binding.ivAdd1.setImageDrawable(MyAppsManager.getDrawable(MainActivity.this, pkg));
+                            binding.fl2.setTag(pkg);
+
+                            AppInfor appIn = myAppsManager.getAppInfor(pkg);
+                            if (appIn != null) {
+                                GlideMgr.loadNormalDrawableImg(MainActivity.this, appIn.getIcon(), binding.ivAdd1);
+                                binding.ivAdd1.invalidate();
+                                binding.ivAdd1.bringToFront();
+                                binding.ivAdd1.refreshDrawableState();
+                                binding.tvAdd1.setText(appIn.getName());
+                                binding.fl2.setTag(appIn.getPackageName());
+                            }
+                        }
+                        String ss = SystemProperties.get("com.zhuchao.android.ss");
+                        if (ss.equals("132")) { //模拟
+                            binding.ivFill.setImageResource(R.drawable.bmn);
+                            binding.ivFill.setVisibility(View.VISIBLE);
+                            binding.bgIv5.setImageResource(R.drawable.mn1);
+                        }
+                        if (ss.equals("131")) {//蓝牙
+                            binding.ivFill.setImageResource(R.drawable.bly);
+                            binding.ivFill.setVisibility(View.VISIBLE);
+                            binding.bgIv5.setImageResource(R.drawable.ly1);
+                        }
+                        if (ss.equals("133")) {//光纤
+                            binding.ivFill.setImageResource(R.drawable.bopt);
+                            binding.ivFill.setVisibility(View.VISIBLE);
+                            binding.bgIv5.setImageResource(R.drawable.gq1);
+                        }
+                        if (ss.equals("134")) {//同轴
+                            binding.ivFill.setImageResource(R.drawable.btz);
+                            binding.ivFill.setVisibility(View.VISIBLE);
+                            binding.bgIv5.setImageResource(R.drawable.tz1);
                         }
                     }
                 });
@@ -449,8 +472,10 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                     break;
 
                 case KeyEvent.KEYCODE_HOME:
-                case KeyEvent.KEYCODE_BACK:
                     binding.ivFill.setVisibility(View.GONE);
+                    break;
+                case KeyEvent.KEYCODE_BACK:
+                    //binding.ivFill.setVisibility(View.GONE);
                     break;
             }
         }
@@ -464,31 +489,43 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
 
         if (keyCode == KeyEvent.KEYCODE_HOME) {
             binding.ivFill.setVisibility(View.GONE);
-            return true;
+            return false;
         }
 
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            binding.ivFill.setVisibility(View.GONE);
+            //binding.ivFill.setVisibility(View.GONE);
             inputNumber("BACK");
             return false;
         }
         if (keyCode == 132) { //模拟
+            binding.ivFill.setImageResource(R.drawable.bmn);
+            binding.ivFill.setVisibility(View.VISIBLE);
             binding.bgIv5.setImageResource(R.drawable.mn1);
+
             return false;
         }
         if (keyCode == 131) {//蓝牙
+            binding.ivFill.setImageResource(R.drawable.bly);
+            binding.ivFill.setVisibility(View.VISIBLE);
             binding.bgIv5.setImageResource(R.drawable.ly1);
+
             return false;
         }
         if (keyCode == 133) {//光纤
+            binding.ivFill.setImageResource(R.drawable.bopt);
+            binding.ivFill.setVisibility(View.VISIBLE);
             binding.bgIv5.setImageResource(R.drawable.gq1);
+
             return false;
         }
         if (keyCode == 134) {//同轴
+            binding.ivFill.setImageResource(R.drawable.btz);
+            binding.ivFill.setVisibility(View.VISIBLE);
             binding.bgIv5.setImageResource(R.drawable.tz1);
+
             return false;
         }
-        if(keyCode == 135) {//usb
+        if (keyCode == 135) {//usb
             binding.bgIv5.setImageResource(R.drawable.m);
             launchApp("com.zhuchao.android.oplayertv");
             //launchApp("com.android.rockchip");
@@ -991,6 +1028,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv5.setImageResource(R.drawable.tz1);
                 //} else
                 binding.ivFill.setImageResource(R.drawable.btz);
+                binding.ivFill.setVisibility(View.VISIBLE);
 
             } else if (mSerialCommand.equals("0201050000020004000E7E") ||
                     mSerialCommand.equals("0101050000020004000D7E") ||
@@ -1011,6 +1049,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv5.setImageResource(R.drawable.ly1);
                 binding.bgIcon.setVisibility(View.GONE);
                 binding.ivFill.setImageResource(R.drawable.bly);
+                binding.ivFill.setVisibility(View.VISIBLE);
             } else if (mSerialCommand.equals("0201050000020080008A7E") ||
                     mSerialCommand.equals("010105000002008000897E") ||
                     mSerialCommand.equals("0201050000020081008B7E") ||
@@ -1031,6 +1070,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.bgIv5.setImageResource(R.drawable.mn1);
                 binding.fl14.requestFocus();
                 binding.ivFill.setImageResource(R.drawable.bmn);
+                binding.ivFill.setVisibility(View.VISIBLE);
                 binding.bluetooth.setVisibility(View.INVISIBLE);
             } else if (mSerialCommand.equals("0201050000020000010B7E") ||
                     mSerialCommand.equals("0101050000020000020B7E") ||
@@ -1053,6 +1093,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.fl13.requestFocus();
                 //}else
                 binding.ivFill.setImageResource(R.drawable.bopt);
+                binding.ivFill.setVisibility(View.VISIBLE);
                 binding.bluetooth.setVisibility(View.INVISIBLE);
 
             } else if (mSerialCommand.equals("0201050000020000000A7E") ||
@@ -1127,7 +1168,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
             @Override
             public void onDataChange(String data) {
                 mSerialCommand = data;
-                Log.i(TAG,"MyService.onDataChange data=" + data);
+                Log.i(TAG, "MyService.onDataChange data=" + data);
                 if (null != SerialPortReceiveHandler) {
                     SerialPortReceiveHandler.post(HandleSerialPortrunnable);
                 } else {
@@ -1297,9 +1338,11 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
     @Override
     public void OnAppsChanged(String s, AppInfor appInfor) {
         if (s.equals(ADDTOMYAPPS_ACTION)) {
+            binding.ivAdd1.setImageDrawable(MyAppsManager.getDrawable(MainActivity.this, appInfor.getPackageName()));
             GlideMgr.loadNormalDrawableImg(MainActivity.this, appInfor.getIcon(), binding.ivAdd1);
             binding.tvAdd1.setText(appInfor.getName());
             binding.fl2.setTag(appInfor.getPackageName());
+            binding.ivAdd1.refreshDrawableState();
         }
         if (s.equals(DELFROMMYAPPS_ACTION)) {
             binding.ivAdd1.setImageResource(R.drawable.add);
@@ -1936,6 +1979,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                     binding.ivFill.setVisibility(View.GONE);
                     binding.bgIv5.setImageResource(R.drawable.m);
                     binding.bgIv5.setVisibility(View.VISIBLE);
+                    SystemProperties.set("com.zhuchao.android.ss", "0");
                 } else if (SYSTEM_DIALOG_REASON_RECENT_APPS.equals(reason)) {
                     // 长按Home键 或者 activity切换键
                     Log.i(LOG_TAG, "long press home key or activity switch");
@@ -1949,7 +1993,11 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                     binding.ivFill.setVisibility(View.GONE);
                     //Log.i(LOG_TAG, "assist");
                 }
-            } else if (action.equals(ACTION_BATTERY_CHARGE)) {
+                return;
+            }
+
+
+            if (action.equals(ACTION_BATTERY_CHARGE)) {
                 isCharging = intent.getBooleanExtra("isCharge", false);
                 if (isCharging) {
                     binding.ivBattery.setImageResource(R.drawable.charge);

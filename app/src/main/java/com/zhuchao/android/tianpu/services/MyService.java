@@ -330,16 +330,16 @@ public class MyService extends Service {
 
         } else if (type.equals("0500")) {
             if (actionCallback != null) {
-                if (isTopActivity("com.zhuchao.android.tianpu") == false && !data.equals("010105000002000000097E")
-                        && !data.equals("0201050000020005000F7E")) {
+                /*if (isTopActivity("com.zhuchao.android.tianpu") == false && !data.equals("010105000002000000097E")
+                        && !data.equals("0201050000020005000F7E") && !data.equals("010102000002000000067E")) {
                     Intent i = new Intent();
                     i.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
                     ComponentName cn = new ComponentName("com.zhuchao.android.tianpu", "com.zhuchao.android.tianpu.activities.MainActivity");
                     i.setComponent(cn);
 
                     startActivity(i);
-                }
-                actionCallback.onDataChange(this.data);
+                }*/
+               actionCallback.onDataChange(this.data);
             }
         } else if (type.equals("0700")) {
             //吉他
