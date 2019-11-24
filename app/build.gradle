@@ -2,6 +2,20 @@ apply plugin: 'com.android.application'
 apply plugin: 'org.greenrobot.greendao' // apply plugin
 
 android {
+    signingConfigs {
+        release {
+            storeFile file('rk3229.keystore')
+            storePassword '1234998'
+            keyAlias 'rk3229'
+            keyPassword'1234998'
+        }
+        debug {
+            storeFile file("rk3229.keystore")
+            storePassword '1234998'
+            keyAlias 'rk3229'
+            keyPassword'1234998'
+        }
+    }
 
     compileSdkVersion 28
 
@@ -20,32 +34,28 @@ android {
         targetSdkVersion 28
         versionCode 74
         versionName "7.4"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        ndk {
-            moduleName "myserialport"
-            abiFilters "armeabi-v7a", "x86"
-        }
+
+        signingConfig signingConfigs.release
+        multiDexEnabled = true
 
     }
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled false
+            shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             zipAlignEnabled true
+            signingConfig signingConfigs.release
+            debuggable = true
+
         }
         debug {
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 
-    externalNativeBuild {
-        //cmake {
-        //    version '3.10.2'
-        //    path "src/main/cpp/CMakeLists.txt"
-        //}
-    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -57,6 +67,7 @@ android {
         checkReleaseBuilds false
         abortOnError false
     }
+
 }
 
 def releaseTime() {
@@ -76,12 +87,12 @@ dependencies {
     implementation files('libs/framwork_all.jar')
     //implementation files('libs/jackson-core-2.7.9.jar')
 
-    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    implementation 'androidx.databinding:databinding-runtime:1.0.0'
+    implementation 'androidx.databinding:databinding-runtime:3.5.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
-    implementation('androidx.recyclerview:recyclerview:1.0.0')
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+    implementation('androidx.recyclerview:recyclerview:1.1.0')
     implementation 'androidx.cardview:cardview:1.0.0'
 
     implementation('com.facebook.fresco:fresco:0.12.0') {
@@ -90,21 +101,21 @@ dependencies {
     implementation 'com.xhb:xbanner:1.3.0'
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'org.greenrobot:greendao:3.2.2'
-    implementation('com.github.bumptech.glide:glide:4.9.0')
-    annotationProcessor 'com.github.bumptech.glide:compiler:4.9.0'
+    implementation('com.github.bumptech.glide:glide:4.10.0')
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.10.0'
 
     implementation 'me.jessyan:progressmanager:1.5.0'
     implementation('com.squareup.okhttp3:okhttp:4.2.2')
-    implementation ('com.squareup.okio:okio:1.14.0')
-    implementation ('com.google.code.findbugs:jsr305:2.0.1')
-    implementation ('org.conscrypt:conscrypt-openjdk-uber:1.1.3')
+    implementation('com.squareup.okio:okio:2.4.1')
+    implementation('com.google.code.findbugs:jsr305:3.0.2')
+    implementation('org.conscrypt:conscrypt-openjdk-uber:2.2.1')
 
-    implementation ('com.zhuchao.android:libDecodeCore:+@aar')
-    implementation ('com.zhuchao.android:libNetUtil:+@aar')
-    implementation ('com.zhuchao.android:libPlayUtil:+@aar')
-    implementation ('com.zhuchao.android:libPlaySession:+@aar')
+    implementation ('com.zhuchao.android:libDecodeCore:2.0@aar')
+    implementation ('com.zhuchao.android:libNetUtil:2.0@aar')
+    implementation('com.zhuchao.android:libPlayUtil:2.1@aar')
+    implementation('com.zhuchao.android:libPlaySession:2.2@aar')
     implementation ('com.zhuchao.android:libVideo:1.1:@aar')
     implementation ('com.zhuchao.android:libCallbackEvent:1.0:@aar')
-    implementation ('com.zhuchao.android:libFilesManager:+@aar')
-    implementation ('com.zhuchao.android:libDataBaseUtil:+@aar')
+    implementation('com.zhuchao.android:libFilesManager:1.2@aar')
+    implementation('com.zhuchao.android:libDataBaseUtil:2.0@aar')
 }

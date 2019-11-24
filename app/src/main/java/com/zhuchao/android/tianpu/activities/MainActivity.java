@@ -169,7 +169,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
     private String InpputNumStr = "";
     private boolean isCharging = false;
     private boolean blutoothConnected = false;
-    private View OldView = null;
+    //private View OldView = null;
 
     private NetUtils netUtils = null;
     private MyAppsManager myAppsManager = null;
@@ -302,15 +302,21 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
 
         requestPermition();
         setupItemBottomTag();
-        //TimeDateUtils.setAutoTimeZone(MainActivity.this, 1);
-        //TimeDateUtils.setAutoDateTime(MainActivity.this, 1);
-        //TimeDateUtils.setTimeZone(MainActivity.this, "Asia/Kuala_Lumpur");
+        try {
+            TimeDateUtils.setAutoTimeZone(MainActivity.this.getApplicationContext(), 0);
+            TimeDateUtils.setAutoDateTime(MainActivity.this.getApplicationContext(), 1);
+            TimeDateUtils.setTimeZone(MainActivity.this.getApplicationContext(), "Asia/Bangkok");
+            TimeDateUtils.set24Hour(MainActivity.this.getApplicationContext());
+        } catch (Exception e) {
+            //e.printStackTrace();
+            Log.e(TAG, "时区设置错误:"+ e.toString());
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.e(TAG, "launcher is onStart");
+        Log.d(TAG, "Launcher is onStart");
         timeHandler.regTimeReceiver();
         myAppsManager = new MyAppsManager(MainActivity.this, this);
         myAppsManager.getFilter().add("com.zhuchao.android.tianpu");
@@ -318,12 +324,13 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         myAppsManager.getFilter().add("com.iflytek.xiri");
         myAppsManager.getFilter().add("com.softwinner.dragonbox");
         myAppsManager.getFilter().add("com.android.camera2");
+        myAppsManager.getFilter().add("com.android.documentsui");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG, "launcher is onStop");
+        Log.d(TAG, "Launcher is onStop");
     }
 
     @Override
@@ -337,9 +344,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         View rootview = MainActivity.this.getWindow().getDecorView();
         View v = rootview.findFocus();
 
-        if (OldView != null) {
-            OldView.requestFocus();
-        } else {
+        if (v == null) {
             binding.fl0.setFocusable(true);
             binding.fl0.requestFocus();
         }
@@ -375,15 +380,16 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                         String pkg = SPreference.getSharedPreferences(mContext, "MyAppInfors", "MyAppInfors");
 
                         if (!TextUtils.isEmpty(pkg)) {
-                            binding.ivAdd1.setImageDrawable(MyAppsManager.getDrawable(MainActivity.this, pkg));
+                            //binding.ivAdd1.setImageDrawable(MyAppsManager.getDrawable(MainActivity.this, pkg));
+                            GlideMgr.loadNormalDrawableImg(MainActivity.this, MyAppsManager.getDrawable(MainActivity.this, pkg), binding.ivAdd1);
                             binding.fl2.setTag(pkg);
 
                             AppInfor appIn = myAppsManager.getAppInfor(pkg);
                             if (appIn != null) {
                                 GlideMgr.loadNormalDrawableImg(MainActivity.this, appIn.getIcon(), binding.ivAdd1);
-                                binding.ivAdd1.invalidate();
-                                binding.ivAdd1.bringToFront();
-                                binding.ivAdd1.refreshDrawableState();
+                                //binding.ivAdd1.invalidate();
+                                //binding.ivAdd1.bringToFront();
+                                //binding.ivAdd1.refreshDrawableState();
                                 binding.tvAdd1.setText(appIn.getName());
                                 binding.fl2.setTag(appIn.getPackageName());
                             }
@@ -394,20 +400,25 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                             binding.ivFill.setVisibility(View.VISIBLE);
                             binding.bgIv5.setImageResource(R.drawable.mn1);
                         }
-                        if (ss.equals("131")) {//蓝牙
+                        else if (ss.equals("131")) {//蓝牙
                             binding.ivFill.setImageResource(R.drawable.bly);
                             binding.ivFill.setVisibility(View.VISIBLE);
                             binding.bgIv5.setImageResource(R.drawable.ly1);
                         }
-                        if (ss.equals("133")) {//光纤
+                        else if (ss.equals("133")) {//光纤
                             binding.ivFill.setImageResource(R.drawable.bopt);
                             binding.ivFill.setVisibility(View.VISIBLE);
                             binding.bgIv5.setImageResource(R.drawable.gq1);
                         }
-                        if (ss.equals("134")) {//同轴
+                        else if (ss.equals("134")) {//同轴
                             binding.ivFill.setImageResource(R.drawable.btz);
                             binding.ivFill.setVisibility(View.VISIBLE);
                             binding.bgIv5.setImageResource(R.drawable.tz1);
+                        }
+                        else
+                        {
+                            binding.ivFill.setVisibility(View.GONE);
+                            binding.bgIv5.setImageResource(R.drawable.m);
                         }
                     }
                 });
@@ -677,7 +688,6 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
             binding.mac.setVisibility(View.INVISIBLE);
         }
 
-        OldView = newFocus;
         switch (focusVId) {
             case R.id.ad:
                 selEffectBridge.setUpRectResource(R.drawable.home_sel_btn0);
@@ -1338,11 +1348,11 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
     @Override
     public void OnAppsChanged(String s, AppInfor appInfor) {
         if (s.equals(ADDTOMYAPPS_ACTION)) {
-            binding.ivAdd1.setImageDrawable(MyAppsManager.getDrawable(MainActivity.this, appInfor.getPackageName()));
+            //binding.ivAdd1.setImageDrawable(MyAppsManager.getDrawable(MainActivity.this, appInfor.getPackageName()));
             GlideMgr.loadNormalDrawableImg(MainActivity.this, appInfor.getIcon(), binding.ivAdd1);
             binding.tvAdd1.setText(appInfor.getName());
             binding.fl2.setTag(appInfor.getPackageName());
-            binding.ivAdd1.refreshDrawableState();
+            //binding.ivAdd1.refreshDrawableState();
         }
         if (s.equals(DELFROMMYAPPS_ACTION)) {
             binding.ivAdd1.setImageResource(R.drawable.add);
@@ -1353,7 +1363,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
 
     @Override
     public void onNetStateChanged(boolean b, int i, String s, String s1, String s2, String s3, String s4) {
-        Log.d(TAG, "onNetStateChanged>>>>>>>>>> " + b + " " + i + " " + s + " " + s1 + " " + s2 + " " + s3 + " " + s4);
+        Log.d(TAG, "onNetStateChanged>>>>>>>>>> " + b + ", " + i + ", " + s + ", " + s1 + ", " + s2 + ", " + s3 + ", " + s4);
         if (b) {//网络有效
             if (netUtils.isNetCanConnect()) {//网络可以建立连接
                 caculateOnlineTime();
@@ -1369,6 +1379,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 }.start();
             }
         }
+
         synUpdateUI();
     }
 
