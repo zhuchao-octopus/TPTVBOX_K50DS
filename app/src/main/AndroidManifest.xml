@@ -64,21 +64,6 @@
         <activity android:name="com.zhuchao.android.tianpu.activities.AppsActivity" />
         <service android:name="com.zhuchao.android.tianpu.services.MyService" android:enabled="true"/>
 
-        <service android:name="com.zhuchao.android.tianpu.services.iflytekService" >
-            <intent-filter>
-                <action android:name="com.iflytek.xiri2.app.NOTIFY" />
-                <action android:name="android.intent.action.MAIN" />
-            </intent-filter>
-        </service>
-
-       <!--
-       <receiver android:name="com.zhuchao.android.tianpu.activities.BootCompletedReceiver" >
-            <intent-filter>
-                &lt;!&ndash; 开机广播 &ndash;&gt;
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>-->
-
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="com.zhuchao.android.libfilemanager.fileProvider"

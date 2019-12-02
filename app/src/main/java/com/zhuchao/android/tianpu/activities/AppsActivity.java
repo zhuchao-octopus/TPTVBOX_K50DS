@@ -13,6 +13,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.databinding.DataBindingUtil;
 
+import com.zhuchao.android.libfilemanager.AppsChangedCallback;
 import com.zhuchao.android.libfilemanager.MyAppsManager;
 import com.zhuchao.android.libfilemanager.bean.AppInfor;
 import com.zhuchao.android.tianpu.R;
@@ -23,11 +24,13 @@ import com.zhuchao.android.tianpu.utils.PageType;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.zhuchao.android.libfilemanager.MyAppsManager.SCANING_COMPLETE_ACTION;
+
 /**
  * Created by Oracle on 2017/12/1.
  */
 
-public class AppsActivity extends Activity {
+public class AppsActivity extends Activity implements AppsChangedCallback {
 
     private static final String TAG = AppsActivity.class.getSimpleName();
     private ActivityMyApplicationBinding binding;
@@ -101,6 +104,7 @@ public class AppsActivity extends Activity {
     @Override
     protected void onResume() {
         if (mMyAppsManager != null) {
+            mMyAppsManager.setmAppsChangedCallback(this);
             MyAppInfors = mMyAppsManager.getUserApps();
             LoadData();
         }
@@ -132,5 +136,15 @@ public class AppsActivity extends Activity {
             //MyAppInfors = mMyAppsManager.getApps();
         }
         context.startActivity(intent);
+    }
+
+    @Override
+    public void OnAppsChanged(String s, AppInfor appInfor) {
+        if(s.equals(MyAppsManager.SCANING_COMPLETE_ACTION))
+        {
+            //MyAppInfors = mMyAppsManager.getUserApps();
+            appAdapter.notifyDataSetChanged();
+        }
+
     }
 }

@@ -71,7 +71,7 @@ import com.zhuchao.android.tianpu.data.json.regoem.RecommendversionBean;
 import com.zhuchao.android.tianpu.data.json.regoem.RemoveAppBean;
 import com.zhuchao.android.tianpu.databinding.ActivityMainBinding;
 import com.zhuchao.android.tianpu.services.MyService;
-import com.zhuchao.android.tianpu.services.iflytekService;
+
 import com.zhuchao.android.tianpu.utils.GlideMgr;
 import com.zhuchao.android.tianpu.utils.ScreenUtils;
 import com.zhuchao.android.tianpu.utils.TimeHandler;
@@ -111,7 +111,6 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
 
     private HomeWatcherReceiver mHomeKeyReceiver = null;
     private MyReceiver myReceiver = null;
-    private BootCompletedReceiver mBootCompletedReceiver = null;
 
     /**
      * 获取推荐的广告列表
@@ -293,12 +292,6 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         // filter.addAction("com.zhuchao.android.tianpu.views.dialogs.CLEAR_ACTION");
         registerReceiver(myReceiver, filter);
 
-        mBootCompletedReceiver = new BootCompletedReceiver();
-        filter = new IntentFilter();
-        filter.addAction("com.iflytek.xiri.init.start");
-        filter.addAction("android.intent.action.BOOT_COMPLETED");
-        registerReceiver(mBootCompletedReceiver, filter);
-
 
         requestPermition();
         setupItemBottomTag();
@@ -325,6 +318,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         myAppsManager.getFilter().add("com.softwinner.dragonbox");
         myAppsManager.getFilter().add("com.android.camera2");
         myAppsManager.getFilter().add("com.android.documentsui");
+        myAppsManager.getFilter().add("com.zhuchao.android.oplayertv");
     }
 
     @Override
@@ -336,7 +330,7 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
     @Override
     protected void onResume() {
         super.onResume();
-
+        myAppsManager.setmAppsChangedCallback(this);
         pauseSystemMusic();
         binding.adBg.startAutoPlay();
         registerHomeKeyReceiver(this);
@@ -812,10 +806,10 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
         bindService(new Intent(this, MyService.class), this, BIND_AUTO_CREATE);
 
 
-        Intent iii;
-        iii = new Intent(MainActivity.this, iflytekService.class);
-        Log.d(TAG, "start iflytekService");
-        startService(iii);
+        //Intent iii;
+        //iii = new Intent(MainActivity.this, iflytekService.class);
+        //Log.d(TAG, "start iflytekService");
+        //startService(iii);
     }
 
     private void switchToOtherChanel(String ChanelName) {
@@ -1951,9 +1945,11 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
                 binding.ivFill.setVisibility(View.GONE);
                 onClick(binding.fl8);
             } else if ((_action.contains("全民K歌")) || (_action.contains("我要唱歌")) || (_action.contains("我想唱歌")) || (_action.contains("K歌")) || (_action.contains("KTV"))) {
-                OnMainPageViewClick(binding.fl0, -1, true);
+                //OnMainPageViewClick(binding.fl0, -1, true);
+                launchApp("com.tencent.karaoketv");
             } else if ((_action.contains("腾讯视频")) || (_action.contains("云视听"))) {
-                OnMainPageViewClick(binding.fl1, -1, true);
+               // OnMainPageViewClick(binding.fl1, -1, true);
+                launchApp("com.ktcp.tvvideo");
             } else if (_action.contains("应用") || _action.contains("程序")) {
                 AppsActivity.lunchAppsActivity(MainActivity.this, MY_APP_TYPE);
             } else if (_action.contains("最近")) {
@@ -2052,28 +2048,6 @@ public class MainActivity extends Activity implements OnTouchListener, OnGlobalF
             }
         }
     }
-
-    public class BootCompletedReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent != null) {
-                if (intent.getAction().equals("com.iflytek.xiri.init.start")) {
-                    Intent iii;
-                    iii = new Intent(MainActivity.this, iflytekService.class);
-                    Log.d(TAG, "com.iflytek.xiri.init.start");
-                    startService(iii);
-                }
-                if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED")) {
-                    Intent iii;
-                    iii = new Intent(MainActivity.this, iflytekService.class);
-                    Log.d(TAG, "android.intent.action.BOOT_COMPLETED");
-                    startService(iii);
-                }
-            }
-        }
-    }
-
 
 }
 
